@@ -1,3 +1,4 @@
+let violinPlot;
 /**
  * Load data from CSV file asynchronously and visualize it
  */
@@ -9,5 +10,6 @@ d3.csv('data/processed_revenue.csv')
 		});
 
     console.log(data);
+    violinPlot = new ViolinPlot({parentElement:'#violin-plot'}, data);
   })
   .catch(error => console.error(error));
