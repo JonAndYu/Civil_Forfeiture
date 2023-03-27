@@ -44,50 +44,38 @@ class ViolinPlot {
         // Render the violin part
         this._renderViolin();
         this._renderPoints();
-        
     }
 
     _renderViolin() {
         let vis = this;
 
-        vis.chart.selectAll('.violin-bins')
-             .data(vis.sumstat)
-           .join('rect')
-             //.append('rect')
-             .classed('violin-bins')
-             .attr("x", 1)
-        //     .attr("transform", function(d) { return "translate(" + vis.xScale(d.x0) + "," + vis.xNum(d.length) + ")"; })
-        //     .attr("width", function(d) { return vis.xScale(d.x1) - vis.xScale(d.x0) - 1 ; })
-        //     .attr("height", function(d) { return 1000 - vis.xNum(d.length); })
-        //     .style("fill", "steelblue");
-            
-
-        // vis.chart.selectAll('.violin-histogram')
-            //    .data(vis.sumstat)
-            // .enter('path')
-            // .attr('class', 'violin-histogram')
-            //.style('stroke', 'none')
-            //.style('fill', 'grey')
-            // .join('g')
-            //     .classed('violin-histogram')
-            //     .attr("transform", d => `translate(${vis.xScale(d[0])}, 0)`)
-            //     .selectAll("path")
-            //     .data(d => [d.value])
-            //     .join("path")
-            //         .style("stroke", "none")
-            //         .style("fill", "grey")
-            //         .attr("d", d3.area()
-            //             .x0(vis.xNum(0))
-            //             .x1(d => vis.xNum(d.length))
-            //             .y(d => vis.yScale(d.x0))
-            //             .curve(d3.curveCatmullRom) // This makes the line smoother to give the violin appearance. Try d3.curveStep to see the difference
-            //         );
-
+        vis.chart.selectAll('.year-hist')
+                .data(vis.sumstat, d => [d[0]])
+            .join('g')
+                .classed('.year-hist', true)
+                .attr("transform", d => {
+                    // console.log(`${d[0]} : ${vis.xScale(d[0])}`);
+                    // console.log( 0.5 * vis.xScale.bandwidth());
+                    return `translate(${vis.xScale(d[0]) + 0.5 * vis.xScale.bandwidth()}, 0)`
+                })
+            .selectAll('.year-hist-bins')
+            .data(d => {console.log(d); return d[1]})
+            .join('rect')
+                .classed('.year-hist-bins', true)
+                // .attr('x', d => console.log(d[1]))
 
     }
 
     _renderPoints() {
         let vis = this;
+
+        vis.chart.selectAll('.points')
+                .data(vis.data)
+            .join('circle')
+                .classed('points', true)
+                .attr('r', 5)
+				.attr('cy', d => this.yScale(d["REV"]))
+				.attr('cx', d => this.xScale(d["YEAR"]) + 0.5 * vis.xScale.bandwidth() - this._addJitter(vis.xScale.bandwidth()))
     }
 
     _computeHistogram() {
@@ -102,23 +90,14 @@ class ViolinPlot {
         // Every acc is the entries of a different year.
         vis.sumstat = d3.rollup(vis.data, acc => vis.bin(acc.map(g => g.REV)), d => d.YEAR);
 
-        d3.rollup(vis.data, acc => {
-            console.log(vis.bin(acc.map(g => g.REV)));
-        },
-        d => {
-            return d.YEAR;
-        })
-
         // What is the biggest number of value in a bin? We need it cause this value will have a width of 100% of the bandwidth.
         let maxNum = 0
-        for (let i in vis.sumstat ){
+        for (let i in vis.sumstat ) {
             let allBins = vis.sumstat[i].value;
             let lengths = allBins.map(a => a.length);
             let longest = d3.max(lengths);
             maxNum = longest > maxNum ? longest : maxNum;
         }
-
-        //vis.sumstat = Array.from(vis.sumstat, ([key, value]) => ({ key, value }));
 
         // The maximum width of a violin must be x.bandwidth = the width dedicated to a group
         vis.xNum = d3.scaleLinear()
@@ -185,10 +164,18 @@ class ViolinPlot {
         let vis = this;
 
         vis.yScale.domain(d3.extent(vis.data, d => d.REV));
-        vis.xScale.domain(d3.range(d3.min(vis.data.map(d => d.YEAR)), d3.max(vis.data.map(d => d.YEAR))));
+        vis.xScale.domain(d3.range(d3.min(vis.data.map(d => d.YEAR)), d3.max(vis.data.map(d => d.YEAR)) + 1));
 
         vis.xAxis.call(vis.xAxisB);
         vis.yAxis.call(vis.yAxisL);
+    }
+
+    /**
+     * Given a binwidth, the function will use a uniform distribution to randomly return a number [0, binwidth / 2]
+     * @param {number} binwidth 
+     */
+    _addJitter(binwidth) {
+        return Math.random() * Math.floor(binwidth / 2) | 0;
     }
 
 }

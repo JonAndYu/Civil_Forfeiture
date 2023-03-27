@@ -17,3 +17,8 @@
 .violin-histogram {
     fill: whitesmoke;
 }
+
+.points {
+    fill: gray;
+    opacity: 0.25;
+}
