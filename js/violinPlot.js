@@ -82,7 +82,8 @@ class ViolinPlot {
         // Features of the histogram
         vis.bin = d3.bin()
             .domain(vis.yScale.domain())
-            .thresholds(vis.yScale.ticks(10))    // Important: how many bins approx are going to be made? It is the 'resolution' of the violin plot
+            //.thresholds(vis.yScale.ticks(10))    // Important: how many bins approx are going to be made? It is the 'resolution' of the violin plot
+            .thresholds([1,5,10,25,50,100,250,500,1000, 2500, 5000, 10000, 25000, 100000])
             .value(d => d)
 
         // Compute the binning for each group of the dataset
