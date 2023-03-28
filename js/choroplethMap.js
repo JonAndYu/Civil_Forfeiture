@@ -6,8 +6,8 @@ class ChoroplethMap {
     constructor(_config, _data) {
         this.config = {
             parentElement: _config.parentElement,
-            containerWidth: _config.containerWidth || 500,
-            containerHeight: _config.containerHeight || 400,
+            containerWidth: _config.containerWidth || 1000,
+            containerHeight: _config.containerHeight || 800,
             margin: _config.margin || {top: 0, right: 0, bottom: 0, left: 0},
             tooltipPadding: 10,
             legendBottom: 50,
@@ -92,16 +92,16 @@ class ChoroplethMap {
         let vis = this;
 
         // Convert compressed TopoJSON to GeoJSON format
-        const countries = topojson.feature(vis.data, vis.data.objects.states)
+        const states = topojson.feature(vis.data, vis.data.objects.states)
 
         // Defines the scale of the projection so that the geometry fits within the SVG area
-        vis.projection.fitSize([vis.width, vis.height], countries);
+        vis.projection.fitSize([vis.width, vis.height], states);
 
         // Append world map
-        const countryPath = vis.chart.selectAll('.country')
-            .data(countries.features)
+        const statePath = vis.chart.selectAll('.state')
+            .data(states.features)
             .join('path')
-            .attr('class', 'country')
+            .attr('class', 'state')
             .attr('d', vis.geoPath)
             .attr('fill', d => {
                 if (d.properties.data_density) {
@@ -111,7 +111,7 @@ class ChoroplethMap {
                 }
             });
 
-        countryPath
+        statePath
             .on('mousemove', (event,d) => {
                 const dataDensity = d.properties.data_density ? `<strong>${d.properties.data_density}</strong> data density <sup>2</sup>` : 'No data available';
                 d3.select('#tooltip')
@@ -120,7 +120,7 @@ class ChoroplethMap {
                     .style('top', (event.pageY + vis.config.tooltipPadding) + 'px')
                     .html(`
               <div class="tooltip-title">${d.properties.name}</div>
-              <div>${dataDensityDensity}</div>
+              <div>${dataDensity}</div>
             `);
             })
             .on('mouseleave', () => {
