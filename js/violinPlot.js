@@ -103,7 +103,7 @@ class ViolinPlot {
 
         // The maximum width of a violin must be x.bandwidth = the width dedicated to a group
         vis.xNum = d3.scaleLinear()
-            .range([0, vis.xScale.bandwidth()])
+            .range([0, Math.floor(vis.xScale.bandwidth() / 2)])
             .domain([0, maxNum])
     }
 
@@ -143,7 +143,7 @@ class ViolinPlot {
         let vis = this;
 
         // Creating a log scale for the Y axis
-        vis.yScale = d3.scaleLinear()
+        vis.yScale = d3.scaleSymlog()
             .range([vis.config.height, 0]);
 
         vis.xScale = d3.scaleBand()
