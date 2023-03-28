@@ -62,7 +62,7 @@ class ViolinPlot {
             .data(d => d["value"])
             .join('rect')
                 .classed('.year-hist-bins', true)
-                .attr('x', d => console.log(d))
+                // .attr('x', d => console.log(d))
 
     }
 
@@ -89,22 +89,19 @@ class ViolinPlot {
 
         // Compute the binning for each group of the dataset
         // Every acc is the entries of a different year.
-        vis.sumstat = d3.rollup(vis.data, acc => vis.bin(acc.map(g => g.REV)), d => d.YEAR);
+        vis.sumstat = Array.from(
+                d3.rollup(vis.data, acc => vis.bin(acc.map(g => g.REV)), d => d.YEAR)
+            ).map(item => {
+                return { year: item[0], value: item[1] };
+            });
 
-        console.log(vis.sumstat);
+        console.log(vis.sumstat)
+        
 
         // What is the biggest number of value in a bin? We need it cause this value will have a width of 100% of the bandwidth.
-        let maxNum = 0
-        for (let i in vis.sumstat ) {
-            let allBins = vis.sumstat[i].value;
-            let lengths = allBins.map(a => a.length);
-            let longest = d3.max(lengths);
-            maxNum = longest > maxNum ? longest : maxNum;
-        }
-
-        vis.sumstat = Array.from(vis.sumstat).map(item => {
-            return { year: item[0], value: item[1] };
-        });
+        let maxNum = vis.sumstat
+            .map(item => item["value"].map(i => i.length))
+            .reduce((acc, cur) => Math.max(acc, ...cur), -Infinity);
 
         // The maximum width of a violin must be x.bandwidth = the width dedicated to a group
         vis.xNum = d3.scaleLinear()
