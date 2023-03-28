@@ -50,19 +50,19 @@ class ViolinPlot {
         let vis = this;
 
         vis.chart.selectAll('.year-hist')
-                .data(vis.sumstat, d => [d[0]])
+                .data(vis.sumstat, d => [d["year"]])
             .join('g')
                 .classed('.year-hist', true)
                 .attr("transform", d => {
                     // console.log(`${d[0]} : ${vis.xScale(d[0])}`);
                     // console.log( 0.5 * vis.xScale.bandwidth());
-                    return `translate(${vis.xScale(d[0]) + 0.5 * vis.xScale.bandwidth()}, 0)`
+                    return `translate(${vis.xScale(d["year"]) + 0.5 * vis.xScale.bandwidth()}, 0)`
                 })
             .selectAll('.year-hist-bins')
-            .data(d => {console.log(d); return d[1]})
+            .data(d => d["value"])
             .join('rect')
                 .classed('.year-hist-bins', true)
-                // .attr('x', d => console.log(d[1]))
+                .attr('x', d => console.log(d))
 
     }
 
@@ -76,6 +76,7 @@ class ViolinPlot {
                 .attr('r', 5)
 				.attr('cy', d => this.yScale(d["REV"]))
 				.attr('cx', d => this.xScale(d["YEAR"]) + 0.5 * vis.xScale.bandwidth() - this._addJitter(vis.xScale.bandwidth()))
+                //.attr('cx', d => this.xScale(d["YEAR"]) + 0.5 * vis.xScale.bandwidth() - Math.abs(this._gaussianRandom()))
     }
 
     _computeHistogram() {
@@ -90,6 +91,8 @@ class ViolinPlot {
         // Every acc is the entries of a different year.
         vis.sumstat = d3.rollup(vis.data, acc => vis.bin(acc.map(g => g.REV)), d => d.YEAR);
 
+        console.log(vis.sumstat);
+
         // What is the biggest number of value in a bin? We need it cause this value will have a width of 100% of the bandwidth.
         let maxNum = 0
         for (let i in vis.sumstat ) {
@@ -98,6 +101,10 @@ class ViolinPlot {
             let longest = d3.max(lengths);
             maxNum = longest > maxNum ? longest : maxNum;
         }
+
+        vis.sumstat = Array.from(vis.sumstat).map(item => {
+            return { year: item[0], value: item[1] };
+        });
 
         // The maximum width of a violin must be x.bandwidth = the width dedicated to a group
         vis.xNum = d3.scaleLinear()
@@ -139,9 +146,9 @@ class ViolinPlot {
 
     _createScales() {
         let vis = this;
+
         // Creating a log scale for the Y axis
-        //vis.yScale = d3.scaleSymlog()
-        vis.yScale = d3.scaleLinear()
+        vis.yScale = d3.scaleSymlog()
             .range([vis.config.height, 0]);
 
         vis.xScale = d3.scaleBand()
@@ -152,7 +159,7 @@ class ViolinPlot {
             .attr('class', 'axis x-axis')
             .attr('transform', `translate(0, ${vis.config.height})`);
 
-        vis.yAxisL = d3.axisLeft(vis.yScale);
+        vis.yAxisL = d3.axisLeft(vis.yScale).tickValues([1, 5, 10,25,50,100,250,500,1000, 2500, 5000, 10000, 25000, 100000]);
 
         vis.yAxis = vis.chartArea.append('g')
             .attr('class', 'axis y-axis');
@@ -176,6 +183,15 @@ class ViolinPlot {
      */
     _addJitter(binwidth) {
         return Math.random() * Math.floor(binwidth / 2) | 0;
+    }
+
+    _// Standard Normal variate using Box-Muller transform.
+    _gaussianRandom(mean=0, stdev=25) {
+        let u = 1 - Math.random(); // Converting [0,1) to (0,1]
+        let v = Math.random();
+        let z = Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v );
+        // Transform to the desired mean and standard deviation:
+        return z * stdev + mean;
     }
 
 }
