@@ -65,7 +65,7 @@ class ChoroplethMap {
             .attr('class', 'legend-title')
             .attr('dy', '.35em')
             .attr('y', -10)
-            .text('Pop. density per square km')
+            .text('Data density.')
 
         vis.updateVis();
     }
@@ -73,15 +73,15 @@ class ChoroplethMap {
     updateVis() {
         let vis = this;
 
-        const popDensityExtent = d3.extent(vis.data.objects.collection.geometries, d => d.properties.pop_density);
+        const dataDensityExtent = d3.extent(vis.data.objects.states.geometries, d => d.properties.data_density);
 
         // Update color scale
-        vis.colorScale.domain(popDensityExtent);
+        vis.colorScale.domain(dataDensityExtent);
 
         // Define begin and end of the color gradient (legend)
         vis.legendStops = [
-            { color: '#cfe2f2', value: popDensityExtent[0], offset: 0},
-            { color: '#0d306b', value: popDensityExtent[1], offset: 100},
+            { color: '#cfe2f2', value: dataDensityExtent[0], offset: 0},
+            { color: '#0d306b', value: dataDensityExtent[1], offset: 100},
         ];
 
         vis.renderVis();
@@ -92,7 +92,7 @@ class ChoroplethMap {
         let vis = this;
 
         // Convert compressed TopoJSON to GeoJSON format
-        const countries = topojson.feature(vis.data, vis.data.objects.collection)
+        const countries = topojson.feature(vis.data, vis.data.objects.states)
 
         // Defines the scale of the projection so that the geometry fits within the SVG area
         vis.projection.fitSize([vis.width, vis.height], countries);
@@ -104,8 +104,8 @@ class ChoroplethMap {
             .attr('class', 'country')
             .attr('d', vis.geoPath)
             .attr('fill', d => {
-                if (d.properties.pop_density) {
-                    return vis.colorScale(d.properties.pop_density);
+                if (d.properties.data_density) {
+                    return vis.colorScale(d.properties.data_density);
                 } else {
                     return 'url(#lightstripe)';
                 }
@@ -113,14 +113,14 @@ class ChoroplethMap {
 
         countryPath
             .on('mousemove', (event,d) => {
-                const popDensity = d.properties.pop_density ? `<strong>${d.properties.pop_density}</strong> pop. density per km<sup>2</sup>` : 'No data available';
+                const dataDensity = d.properties.data_density ? `<strong>${d.properties.data_density}</strong> data density <sup>2</sup>` : 'No data available';
                 d3.select('#tooltip')
                     .style('display', 'block')
                     .style('left', (event.pageX + vis.config.tooltipPadding) + 'px')
                     .style('top', (event.pageY + vis.config.tooltipPadding) + 'px')
                     .html(`
               <div class="tooltip-title">${d.properties.name}</div>
-              <div>${popDensity}</div>
+              <div>${dataDensityDensity}</div>
             `);
             })
             .on('mouseleave', () => {
