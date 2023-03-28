@@ -53,16 +53,14 @@ class ViolinPlot {
                 .data(vis.sumstat, d => [d["year"]])
             .join('g')
                 .classed('.year-hist', true)
-                .attr("transform", d => {
-                    // console.log(`${d[0]} : ${vis.xScale(d[0])}`);
-                    // console.log( 0.5 * vis.xScale.bandwidth());
-                    return `translate(${vis.xScale(d["year"]) + 0.5 * vis.xScale.bandwidth()}, 0)`
-                })
+                .attr("transform", d => `translate(${vis.xScale(d["year"]) + 0.5 * vis.xScale.bandwidth()}, 0)`)
             .selectAll('.year-hist-bins')
             .data(d => d["value"])
             .join('rect')
                 .classed('.year-hist-bins', true)
-                // .attr('x', d => console.log(d))
+                .attr('width', d => {console.log(vis.xNum(d.length)); return vis.xNum(d.length)})
+                .attr('height', 25)
+                .attr('transform', d => `translate(0, ${vis.yScale(d.x0)})`)
 
     }
 
@@ -76,11 +74,11 @@ class ViolinPlot {
                 .attr('r', 5)
 				.attr('cy', d => this.yScale(d["REV"]))
 				.attr('cx', d => this.xScale(d["YEAR"]) + 0.5 * vis.xScale.bandwidth() - this._addJitter(vis.xScale.bandwidth()))
-                //.attr('cx', d => this.xScale(d["YEAR"]) + 0.5 * vis.xScale.bandwidth() - Math.abs(this._gaussianRandom()))
     }
 
     _computeHistogram() {
         let vis = this;
+
         // Features of the histogram
         vis.bin = d3.bin()
             .domain(vis.yScale.domain())
@@ -106,7 +104,7 @@ class ViolinPlot {
         // The maximum width of a violin must be x.bandwidth = the width dedicated to a group
         vis.xNum = d3.scaleLinear()
             .range([0, vis.xScale.bandwidth()])
-            .domain([-maxNum, maxNum])
+            .domain([0, maxNum])
     }
 
     /**
@@ -127,7 +125,7 @@ class ViolinPlot {
      * @returns 
      */
     _filterNegativeRevenues(data) {
-        return data.filter(d => d.REV >= 0)
+        return data.filter(d => d.REV > 0)
     }
 
     /**
@@ -145,7 +143,7 @@ class ViolinPlot {
         let vis = this;
 
         // Creating a log scale for the Y axis
-        vis.yScale = d3.scaleSymlog()
+        vis.yScale = d3.scaleLinear()
             .range([vis.config.height, 0]);
 
         vis.xScale = d3.scaleBand()
@@ -181,14 +179,4 @@ class ViolinPlot {
     _addJitter(binwidth) {
         return Math.random() * Math.floor(binwidth / 2) | 0;
     }
-
-    _// Standard Normal variate using Box-Muller transform.
-    _gaussianRandom(mean=0, stdev=25) {
-        let u = 1 - Math.random(); // Converting [0,1) to (0,1]
-        let v = Math.random();
-        let z = Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v );
-        // Transform to the desired mean and standard deviation:
-        return z * stdev + mean;
-    }
-
 }
