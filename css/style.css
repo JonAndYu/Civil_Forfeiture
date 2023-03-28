@@ -4,8 +4,8 @@
     justify-content: center;
     align-items: center;
     height: 400px;
-    width: 100%;
-    background-color: powderblue;
+    width: 60%;
+    background-color: white;
 }
 
 #violin-plot {
@@ -19,12 +19,28 @@
 }
 
 .points {
-    fill: gray;
-    opacity: 0.25;
+    opacity: 0;
+}
+
+.vehicles {
+    opacity: 1;
+    fill: #fbb4ae;
+}
+.currency {
+    fill: #ccebc5;
+}
+
+.real-property {
+    fill: #b3cde3;
+}
+
+.other {
+    fill: #decbe4;
 }
 
 .year-hist-bins {
-    fill : #ADD8E6;
+    /* fill : #ADD8E6; */
     stroke:black;
-    stroke-width:3;
+    /* stroke-width:3; */
 }
+

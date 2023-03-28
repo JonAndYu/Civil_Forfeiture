@@ -29,7 +29,7 @@ class ViolinPlot {
     updateVis() {
         let vis = this;
 
-        vis.data = vis._filterBetweenRangeOfYears(vis._filterNegativeRevenues(vis.data), 1987, 1992);
+        vis.data = vis._filterBetweenRangeOfYears(vis._filterNegativeRevenues(vis.data), 2010, 2016);
 
         vis._updateScales();
 
@@ -57,8 +57,7 @@ class ViolinPlot {
             .selectAll('.year-hist-bins')
             .data(d => d["value"])
             .join('rect')
-                .classed('.year-hist-bins', true)
-                .style('stroke', "black")
+                .classed('year-hist-bins', true)
                 .attr('width', d => vis.xNum(d.length))
                 .attr('height', d => {return 25})
                 //.attr('height', d => {return vis.yScale(d.x0) - vis.yScale(d.x1)})
@@ -69,6 +68,7 @@ class ViolinPlot {
     _renderPoints() {
         let vis = this;
 
+        console.log(vis.data);
         vis.chart.selectAll('.points')
                 .data(vis.data)
             .join('circle')
@@ -76,6 +76,20 @@ class ViolinPlot {
                 .attr('r', 5)
 				.attr('cy', d => this.yScale(d["REV"]))
 				.attr('cx', d => this.xScale(d["YEAR"]) + 0.5 * vis.xScale.bandwidth() - this._addJitter(vis.xScale.bandwidth()))
+                .attr('class', d => {
+                    console.log(d['PROP_TYPE']);
+                    switch(d['PROP_TYPE']) {
+                        case 'Currency':
+                            return 'currency'
+                        case 'Vehicles':
+                            console.log(d["PROP_TYPE"])
+                            return 'vehicles'
+                        case 'Real Property':
+                            return 'real-property'
+                        default: // Other
+                            return 'other'
+                      }
+                });
     }
 
     _computeHistogram() {
@@ -128,7 +142,7 @@ class ViolinPlot {
      * @returns 
      */
     _filterNegativeRevenues(data) {
-        return data.filter(d => d.REV > 0)
+        return data.filter(d => d.REV >= 0)
     }
 
     /**
