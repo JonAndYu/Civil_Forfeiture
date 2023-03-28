@@ -22,3 +22,9 @@
     fill: gray;
     opacity: 0.25;
 }
+
+.year-hist-bins {
+    fill : #ADD8E6;
+    stroke:black;
+    stroke-width:3;
+}

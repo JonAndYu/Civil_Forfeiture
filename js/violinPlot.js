@@ -58,9 +58,11 @@ class ViolinPlot {
             .data(d => d["value"])
             .join('rect')
                 .classed('.year-hist-bins', true)
-                .attr('width', d => {console.log(vis.xNum(d.length)); return vis.xNum(d.length)})
-                .attr('height', 25)
-                .attr('transform', d => `translate(0, ${vis.yScale(d.x0)})`)
+                .style('stroke', "black")
+                .attr('width', d => vis.xNum(d.length))
+                .attr('height', d => {return 25})
+                //.attr('height', d => {return vis.yScale(d.x0) - vis.yScale(d.x1)})
+                .attr('transform', d => `translate(0, ${vis.yScale(d.x1)})`)
 
     }
 
