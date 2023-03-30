@@ -1,5 +1,4 @@
-//TODO Change density type
-//TODO Move style information to CSS
+// This is largely based on the choropleth example
 
 class ChoroplethMap {
 
@@ -41,6 +40,7 @@ class ChoroplethMap {
 
         // Initialize projection and path generator
         vis.projection = d3.geoMercator();
+
         vis.geoPath = d3.geoPath().projection(vis.projection);
 
         vis.colorScale = d3.scaleLinear()
@@ -95,7 +95,13 @@ class ChoroplethMap {
         const states = topojson.feature(vis.data, vis.data.objects.states)
 
         // Defines the scale of the projection so that the geometry fits within the SVG area
-        vis.projection.fitSize([vis.width, vis.height], states);
+        //vis.projection.fitSize([vis.width, vis.height], states);
+
+        // TEMP Projection
+        vis.projection
+            .center([0, 0])
+            .scale(400)
+            .translate([1.5 * vis.width, vis.height]);
 
         // Append world map
         const statePath = vis.chart.selectAll('.state')
