@@ -9,8 +9,8 @@ class ChoroplethMap {
             containerHeight: _config.containerHeight || 450,
             margin: _config.margin || {top: 0, right: 0, bottom: 0, left: 0},
             tooltipPadding: 10,
-            legendBottom: 50,
-            legendLeft: 50,
+            legendBottom: 150,
+            legendLeft: 150,
             legendRectHeight: 12,
             legendRectWidth: 150
         }
@@ -103,7 +103,7 @@ class ChoroplethMap {
             .scale(400)
             .translate([1.5 * vis.width, vis.height]);
 
-        // Append world map
+        // Append US map
         const statePath = vis.chart.selectAll('.state')
             .data(states.features)
             .join('path')
