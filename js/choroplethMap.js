@@ -6,8 +6,8 @@ class ChoroplethMap {
     constructor(_config, _data) {
         this.config = {
             parentElement: _config.parentElement,
-            containerWidth: _config.containerWidth || 1000,
-            containerHeight: _config.containerHeight || 800,
+            containerWidth: _config.containerWidth || 600,
+            containerHeight: _config.containerHeight || 450,
             margin: _config.margin || {top: 0, right: 0, bottom: 0, left: 0},
             tooltipPadding: 10,
             legendBottom: 50,
@@ -65,7 +65,7 @@ class ChoroplethMap {
             .attr('class', 'legend-title')
             .attr('dy', '.35em')
             .attr('y', -10)
-            .text('Data density.')
+            .text('Number of Seizures')
 
         vis.updateVis();
     }
@@ -113,7 +113,7 @@ class ChoroplethMap {
 
         statePath
             .on('mousemove', (event,d) => {
-                const dataDensity = d.properties.data_density ? `<strong>${d.properties.data_density}</strong> data density <sup>2</sup>` : 'No data available';
+                const dataDensity = d.properties.data_density ? `<strong>${d.properties.data_density}</strong> Seizures` : 'No data available';
                 d3.select('#tooltip')
                     .style('display', 'block')
                     .style('left', (event.pageX + vis.config.tooltipPadding) + 'px')
