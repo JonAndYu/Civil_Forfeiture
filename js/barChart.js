@@ -95,7 +95,7 @@ class BarChart {
 
         vis.xValue = d => d.name;
         vis.yValue = d => d.value;
-        vis.yScale.domain([0, max]);
+        vis.yScale.domain([0, max]).nice();
 
         vis.xScale.domain(vis.data2.map(d=>d.name));
         // vis.xScale.domain(vis.filteredData.map(d => d.PROP_TYPE));
@@ -106,7 +106,7 @@ class BarChart {
 
     renderVis() {
         let vis = this;
-        var colors = ['#e41a1c','#377eb8','#ffffff'];
+        var colors = ['#e41a1c','#ffffff','#377eb8'];
         var groups = ['Vehicles','Others','Currency','Real Property'];
         var subgroups = ['Conviction','No_Conviction','Unknown'];
         vis.stackedData = d3.stack()
@@ -115,28 +115,35 @@ class BarChart {
         console.log(vis.stackedData);
 
 
-        let bars = vis.chart.selectAll('.bar')
-            .data(vis.data2, d=>d.name)
-            .join('rect')
-            .attr('class', 'bar')
-            .attr('x', d => vis.xScale(vis.xValue(d)))
-            .attr('width', vis.xScale.bandwidth())
-            .attr('height', d => vis.height - vis.yScale(vis.yValue(d)))
-            .attr('y', d => vis.yScale(vis.yValue(d)))
+        // let bars = vis.chart.selectAll('.bar')
+        //     .data(vis.data2, d=>d.name)
+        //     .join('rect')
+        //     .attr('class', 'bar')
+        //     .attr('x', d => vis.xScale(vis.xValue(d)))
+        //     .attr('width', vis.xScale.bandwidth())
+        //     .attr('height', d => vis.height - vis.yScale(vis.yValue(d)))
+        //     .attr('y', d => vis.yScale(vis.yValue(d)))
 
-        // let bars = vis.chart.selectAll('g')
-        //     .data(vis.stackedData)
-        //     .enter().append('g')
-        //     .attr("class", "bars")
-        //     .attr("fill", function(d, i) { return colors[i]; })
-        //     .selectAll("rect")
-        //     // enter a second time = loop subgroup per subgroup to add all rectangles
-        //     .data(function(d) { return d; })
-        //     .enter().append("rect")
-        //     .attr("x", function(d) { return vis.xScale(d.data.group); })
-        //     .attr("y", function(d) { return vis.yScale(d[1]); })
-        //     .attr("height", function(d) { return vis.yScale(d[0]) - vis.yScale(d[1]); })
-        //     .attr("width",vis.xScale.bandwidth());
+        let bars = vis.chart.append('g').selectAll('g')
+            .data(vis.stackedData)
+            .enter().append('g')
+            .attr("class", "bars")
+            .attr('opacity', 0.5)
+            .attr("fill", function(d, i) {
+                return colors[i]; })
+            .selectAll("rect")
+            // enter a second time = loop subgroup per subgroup to add all rectangles
+            .data(function(d) {return d; })
+            .enter().append("rect")
+            .attr("x", function(d) {
+                return vis.xScale(d.data.PROP_TYPE); })
+            .attr("y", function(d) {
+                return vis.yScale(d[1]); })
+            .attr("height", function(d) {
+                console.log(vis.yScale(d[0]) - vis.yScale(d[1]));
+                return vis.yScale(d[0]) - vis.yScale(d[1]);
+            })
+            .attr("width", vis.xScale.bandwidth());
 
 
         vis.xAxisG.call(vis.xAxis);
