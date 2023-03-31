@@ -4,7 +4,7 @@ class ViolinPlot {
         this.config = {
             parentElement: _config.parentElement,
             legendElement: _config.legendElement,
-            margin: { top: 20, bottom: 20, right: 20, left: 50}
+            margin: { top: 30, bottom: 20, right: 20, left: 50}
         };
         this.org_data = JSON.parse(JSON.stringify(_data));
         this.data = _data;
@@ -26,6 +26,8 @@ class ViolinPlot {
         vis._createScales();
 
         vis._initLegend();
+
+        vis._initAxisLabels();
 
         vis.updateVis();
     }
@@ -145,7 +147,7 @@ class ViolinPlot {
         // Features of the histogram
         vis.bin = d3.bin()
             .domain(vis.yScale.domain())
-            .thresholds([1,5,10,25,50,100,250,500,1000, 2500, 5000, 10000, 25000, 100000])
+            .thresholds([1,5,10,25,50,100,250,500,1000, 2500, 5000, 10000, 25000])
             .value(d => d)
 
         // Compute the binning for each group of the dataset
@@ -225,7 +227,7 @@ class ViolinPlot {
             .attr('class', 'axis x-axis')
             .attr('transform', `translate(0, ${vis.config.height})`);
 
-        vis.yAxisL = d3.axisLeft(vis.yScale).tickValues([1, 5, 10,25,50,100,250,500,1000, 2500, 5000, 10000, 25000, 100000]);
+        vis.yAxisL = d3.axisLeft(vis.yScale).tickValues([1, 5, 10,25,50,100,250,500,1000, 2500, 5000, 10000, 25000]);
 
         vis.yAxis = vis.chartArea.append('g')
             .attr('class', 'axis y-axis');
@@ -320,6 +322,35 @@ class ViolinPlot {
             vis._computeHistogram();
             vis.renderVis();
         });
+    }
+
+    /** Adds the axis labels */
+    _initAxisLabels() {
+        let vis = this;
+        
+        // Add the Year axis Label
+        vis.chart.append('text')
+            .style('fill', "black")
+            .style('font-size', 24)
+            .style('font-weight', "bold")
+            .attr('transform', `translate(${vis.config.width - 50}, ${vis.config.height + 20})`)
+            .text("Year");
+
+        // Add the Revenue axis Label
+        vis.chart.append('text')
+            .style('fill', "black")
+            .style('font-size', 24)
+            .style('font-weight', "bold")
+            .attr('transform', `translate(-50, -4)`)
+            .text("Revenue");
+
+        // Add the count axis Lable
+        vis.chart.append('text')
+        .style('fill', "black")
+        .style('font-size', 14)
+        .style('font-weight', "bold")
+        .attr('transform', `translate(${vis.config.width - 20}, -18)`)
+        .text("Count");
     }
 
 }
