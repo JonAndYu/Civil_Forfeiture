@@ -140,6 +140,12 @@
     font-size: .7rem;
 }
 
+/* .legend-label#violin-area {
+    font-size: .4em;
+    font-weight:  bold;
+    fill: black;
+} */
+
 legend {
     font-size:  1.4em;
     font-weight:  bold;
