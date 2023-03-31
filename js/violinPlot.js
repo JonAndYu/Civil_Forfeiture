@@ -5,6 +5,7 @@ class ViolinPlot {
             parentElement: _config.parentElement,
             margin: { top: 20, bottom: 20, right: 20, left: 50}
         };
+        this.org_data = JSON.parse(JSON.stringify(_data));
         this.data = _data;
         this.initVis();
     }
@@ -35,6 +36,10 @@ class ViolinPlot {
 
         vis._computeHistogram();
 
+        // Add button functionality
+        vis._filterZeros("#filter-others");
+        vis._filterZeros("#filter-zeros");
+
         vis.renderVis();
     }
 
@@ -43,6 +48,7 @@ class ViolinPlot {
 
         // Render the violin part
         this._renderViolin();
+        this._renderHistogramAxis();
         this._renderPoints();
     }
 
@@ -52,59 +58,79 @@ class ViolinPlot {
         vis.chart.selectAll('.year-hist')
                 .data(vis.sumstat, d => [d["year"]])
             .join('g')
-                .classed('.year-hist', true)
+                .classed('year-hist', true)
                 .attr("transform", d => `translate(${vis.xScale(d["year"]) + 0.5 * vis.xScale.bandwidth()}, 0)`)
             .selectAll('.year-hist-bins')
             .data(d => d["value"])
             .join('rect')
                 .classed('year-hist-bins', true)
                 .attr('width', d => vis.xNum(d.length))
-                //.attr('height', d => {return 25})
-                .attr('height', d => {return vis.yScale(d.x0) - vis.yScale(d.x1)})
+                .attr('height', d => vis.yScale(d.x0) - vis.yScale(d.x1))
                 .attr('transform', d => `translate(0, ${vis.yScale(d.x1)})`)
-
     }
 
     _renderPoints() {
         let vis = this;
+        
+        let selection = vis.chart.selectAll('.points')
+            .data(vis.data, d => d["RevenueID"])
+            .join('circle');
 
-        vis.chart.selectAll('.points')
-                .data(vis.data)
-            .join('circle')
-                .classed('points', true)
-                .attr('r', 3)
-				.attr('cy', d => this.yScale(d["REV"]))
-				.attr('cx', d => this.xScale(d["YEAR"]) + 0.5 * vis.xScale.bandwidth() - Math.abs(this._gaussianRandom()))
-                .attr('transform', 'translate(-3,0)')
-                .attr('class', d => {
-                    switch(d['PROP_TYPE']) {
-                        case 'Currency':
-                            return 'currency'
-                        case 'Vehicles':
-                            console.log(d["PROP_TYPE"])
-                            return 'vehicles'
-                        case 'Real Property':
-                            return 'real-property'
-                        default: // Other
-                            return 'other'
-                      }
-                });
+        // Checks which of the two buttons are selected.
+        if (d3.select('#filter-others').classed('selected') && d3.select('#filter-zeros').classed('selected')) {
+            selection = selection.filter(d => d["REV"] !== 0 && d['PROP_TYPE'] !== "Other");
+        } else if (d3.select('#filter-others').classed('selected')) {
+            selection = selection.filter(d => d['PROP_TYPE'] !== "Other");
+        } else if (d3.select('#filter-zeros').classed('selected')){
+            selection = selection.filter(d => d["REV"] !== 0);
+        }
+
+
+        selection.classed('points', true)
+            .attr('r', 3)
+			.attr('cy', d => this.yScale(d["REV"]))
+			.attr('cx', d => this.xScale(d["YEAR"]) + 0.5 * vis.xScale.bandwidth() - Math.abs(this._gaussianRandom()))
+            .attr('transform', 'translate(-3,0)')
+            .attr('class', d => {
+                switch(d['PROP_TYPE']) {
+                    case 'Currency':
+                        return 'currency'
+                    case 'Vehicles':
+                        return 'vehicles'
+                    case 'Real Property':
+                        return 'real-property'
+                    default: // Other
+                        return 'other'
+                }
+            });
+    }
+
+    _renderHistogramAxis() {
+        let vis = this;
+        let topAxis = d3.axisTop(vis.xNum).ticks(3);
+
+        d3.selectAll('.year-hist')
+            .append('g')
+            .attr('class', 'x-axis count')
+            .attr('transform', 'translate(0, 0)')
+            .call(topAxis);
     }
 
     _computeHistogram() {
         let vis = this;
 
+        let data = vis.data;
+
         // Features of the histogram
         vis.bin = d3.bin()
             .domain(vis.yScale.domain())
-            //.thresholds(vis.yScale.ticks(10))    // Important: how many bins approx are going to be made? It is the 'resolution' of the violin plot
             .thresholds([1,5,10,25,50,100,250,500,1000, 2500, 5000, 10000, 25000, 100000])
             .value(d => d)
 
         // Compute the binning for each group of the dataset
         // Every acc is the entries of a different year.
         vis.sumstat = Array.from(
-                d3.rollup(vis.data, acc => vis.bin(acc.map(g => g.REV)), d => d.YEAR)
+                d3.rollup(data, acc => vis.bin(acc.map(g => g.REV)), d => d.YEAR)
             ).map(item => {
                 return { year: item[0], value: item[1] };
             });
@@ -140,7 +166,7 @@ class ViolinPlot {
      * @returns 
      */
     _filterNegativeRevenues(data) {
-        return data.filter(d => d.REV >= 0)
+        return data.filter(d => d.REV > 0)
     }
 
     /**
@@ -165,6 +191,9 @@ class ViolinPlot {
         .range([ 0, vis.config.width ])
         .padding(0.05)
 
+        vis.xNum = d3.scaleLinear()
+            .range([0, Math.floor(vis.xScale.bandwidth() / 2)])
+
         vis.xAxis = vis.chartArea.append('g')
             .attr('class', 'axis x-axis')
             .attr('transform', `translate(0, ${vis.config.height})`);
@@ -173,6 +202,7 @@ class ViolinPlot {
 
         vis.yAxis = vis.chartArea.append('g')
             .attr('class', 'axis y-axis');
+            
 
         vis.xAxisB = d3.axisBottom(vis.xScale); 
     }
@@ -207,6 +237,23 @@ class ViolinPlot {
         return z * stdev + mean;
     }
 
-    _filterZeros
+    _filterZeros(selector) {
+        let vis = this;
+        let button = d3.select(selector);
+
+        button.on("click", function(event, e) {
+
+            const element = d3.select(this);
+            const isActive = element.classed("selected");
+
+            element.classed("selected", !isActive);
+            
+            // Checks which of the two buttons are selected.
+            vis._updateScales();
+            vis._computeHistogram();
+            vis.renderVis();
+
+        });
+    }
 
 }
