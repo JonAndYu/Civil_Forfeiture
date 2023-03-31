@@ -20,6 +20,21 @@
     font-weight: 600;
 }
 
+/*bar chat styling*/
+#bar-chart-area {
+    position: absolute;
+    left: 600px;
+    top: 70px;
+    height: 400px;
+    width: auto;
+    padding: 20px;
+}
+
+#bar-chart {
+    height: 500px;
+    width: 600px;
+}
+
 /* Violin Plot Styling */
 #violin-area {
     height: 400px;
