@@ -7,3 +7,7 @@ Citations and References:
 
     -States-10m.json from https://github.com/topojson/us-atlas
     
+    -Random distribution from the scatterplot section was created using the box muller transformation from 
+    https://stackoverflow.com/questions/25582882/javascript-math-random-normal-distribution-gaussian-bell-curve
+    
+    -Filter button styling was taken from https://getcssscan.com/css-buttons-examples (button-80)
