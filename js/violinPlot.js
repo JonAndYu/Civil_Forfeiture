@@ -73,7 +73,7 @@ class ViolinPlot {
                 .data(vis.data)
             .join('circle')
                 .classed('points', true)
-                .attr('r', 5)
+                // .attr('r', 5)
 				.attr('cy', d => this.yScale(d["REV"]))
 				//.attr('cx', d => this.xScale(d["YEAR"]) + 0.5 * vis.xScale.bandwidth() - this._addJitter(vis.xScale.bandwidth()))
 				.attr('cx', d => this.xScale(d["YEAR"]) + 0.5 * vis.xScale.bandwidth() - Math.abs(this._gaussianRandom()))

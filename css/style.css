@@ -1,11 +1,31 @@
 /* Violin Plot Styling */
+#violin-area {
+    height: 400px;
+    width: auto;
+    padding: 20px;
+}
+
 #violin-div {
-    display: flex;
     justify-content: center;
     align-items: center;
     height: 400px;
-    width: 100%;
+    width: 75%;
     background-color: white;
+    float: left;
+}
+
+#violin-container {
+    width: 25%;
+    justify-content: center;
+    align-items:center;
+    height: 400px;
+    float: right;
+    margin: auto;
+}
+
+#violin-buttons {
+    margin: auto;
+    text-align: center;
 }
 
 #violin-plot {
@@ -19,11 +39,10 @@
 }
 
 .points {
-    opacity: 0;
+    opacity: 0.15;
 }
 
 .vehicles {
-    opacity: 1;
     fill: #fbb4ae;
 }
 .currency {
