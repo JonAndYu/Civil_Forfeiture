@@ -3,6 +3,7 @@ class ViolinPlot {
     constructor(_config, _data) {
         this.config = {
             parentElement: _config.parentElement,
+            legendElement: _config.legendElement,
             margin: { top: 20, bottom: 20, right: 20, left: 50}
         };
         this.org_data = JSON.parse(JSON.stringify(_data));
@@ -23,6 +24,8 @@ class ViolinPlot {
         vis.chart = vis.chartArea.append('g');
 
         vis._createScales();
+
+        vis._initLegend();
 
         vis.updateVis();
     }
@@ -205,6 +208,43 @@ class ViolinPlot {
             
 
         vis.xAxisB = d3.axisBottom(vis.xScale); 
+    }
+
+    _initLegend() {
+        let vis = this;
+        let svg = d3.select(vis.config.legendElement);
+
+        // Value : Key => PROP_TYPE : CSS Class
+        let prop_type_dict = {
+            'Currency' : 'currency',
+            'Vehicles' : 'vehicles',
+            'Real Property' : 'real-property',
+            'Other' : 'other'
+        };
+
+        let count = 1
+        let circleRad = 10
+
+        for (const key in prop_type_dict) {
+            const curr_group = svg.append('g');
+            curr_group.append('circle')
+                .attr('r', circleRad)
+                .attr('transform', `translate(${circleRad}, ${count*30 - 60})`)
+                .classed('point', true)
+                .classed(prop_type_dict[key], true);
+                
+            curr_group.append('text')
+                .attr('transform', `translate(${3*circleRad}, ${count*30 - 60 + circleRad /2 })`)
+                .text(key);
+            
+            curr_group.attr('transform', 'translate(0, 50)')
+
+            count++;
+        }
+    }
+
+    _createLegendRow() {
+
     }
 
     /**

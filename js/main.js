@@ -33,5 +33,5 @@ Promise.all([
         parentElement: '#map'
     }, data[0]);
 
-    violinPlot = new ViolinPlot({parentElement:'#violin-plot'}, data[1]);
+    violinPlot = new ViolinPlot({parentElement:'#violin-plot', legendElement: '#violin-legend-contents'}, data[1]);
 }).catch(error => console.error(error));

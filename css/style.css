@@ -50,6 +50,18 @@
     text-align: center;
 }
 
+#violin-legend-contents {
+    height: 250px;
+    z-index: 1;
+}
+
+legend {
+    font-size:  1.4em;
+    font-weight:  bold;
+    position:  relative;
+    top:  -.4em;
+}
+
 /* Button CSS taking from https://getcssscan.com/css-buttons-examples" */
 .button-80 {
   background: #fff;
