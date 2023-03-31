@@ -55,13 +55,6 @@
     z-index: 1;
 }
 
-legend {
-    font-size:  1.4em;
-    font-weight:  bold;
-    position:  relative;
-    top:  -.4em;
-}
-
 /* Button CSS taking from https://getcssscan.com/css-buttons-examples" */
 .button-80 {
   background: #fff;
@@ -107,9 +100,7 @@ legend {
     fill: whitesmoke;
 }
 
-.violin-histogram {
-    fill: whitesmoke;
-}
+/* Scatterplot Marks */
 
 .points {
     opacity: 0.15;
@@ -130,10 +121,16 @@ legend {
     fill: #decbe4;
 }
 
+/* Histogram Marks */
+.violin-histogram {
+    fill: whitesmoke;
+}
+
 .year-hist-bins {
     stroke:black;
 }
 
+/* Legend Styling */
 .legend-title {
     font-size: .7rem;
     font-weight: 600;
@@ -141,4 +138,11 @@ legend {
 
 .legend-label {
     font-size: .7rem;
+}
+
+legend {
+    font-size:  1.4em;
+    font-weight:  bold;
+    position:  relative;
+    top:  -.4em;
 }
