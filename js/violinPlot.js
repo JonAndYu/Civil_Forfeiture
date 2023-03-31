@@ -55,6 +55,9 @@ class ViolinPlot {
         this._renderPoints();
     }
 
+    /**
+     * Displays the histogram
+     */
     _renderViolin() {
         let vis = this;
 
@@ -72,6 +75,9 @@ class ViolinPlot {
                 .attr('transform', d => `translate(0, ${vis.yScale(d.x1)})`)
     }
 
+    /**
+     * Displays the points at each year mark.
+     */
     _renderPoints() {
         let vis = this;
         
@@ -108,6 +114,9 @@ class ViolinPlot {
             });
     }
 
+    /**
+     * Appends the axis for each histogram. that is displayed at the top of the view.
+     */
     _renderHistogramAxis() {
         let vis = this;
         let topAxis = d3.axisTop(vis.xNum).ticks(3);
@@ -119,6 +128,15 @@ class ViolinPlot {
             .call(topAxis);
     }
 
+    /**
+     * Computes a histogram and creates the following class properties.
+     *  vis.sumstat = [{year: ####, value: Array(#)}, ...]
+     *      The value key holds a 2d array where each array contains a property x0 (lower bounds)
+     *      and x1 (upper bounds) of the given bin. The number of bins (size of value) is dictated
+     *      by the thresholds of vis.bin. The length of each 1d array are the amount of values in the bin
+     * 
+     *  vis.xNum is a linear scale that is created by finding the max bin size of all the years.
+     */
     _computeHistogram() {
         let vis = this;
 
@@ -183,6 +201,12 @@ class ViolinPlot {
         return data.filter(d => d.YEAR >= lowerBound && d.YEAR <= upperBound);
     }
 
+    /**
+     * Creates the following 3 scales.
+     * - vis.yScale is a symmetric log to be used on the revenume of data points
+     * - vis.xSale is a band scale to be used for each group (year)
+     * - vis.xName is a linear scale that's used for the histogram creation.
+     */
     _createScales() {
         let vis = this;
 
@@ -210,6 +234,13 @@ class ViolinPlot {
         vis.xAxisB = d3.axisBottom(vis.xScale); 
     }
 
+    /**
+     * Creates a color legend for property types.
+     *  #fbb4ae - Vehicle
+     *  #b3cde3 - Real Property
+     *  #ccebc5 - Currency
+     *  #decbe4 - Other 
+     */
     _initLegend() {
         let vis = this;
         let svg = d3.select(vis.config.legendElement);
@@ -243,12 +274,8 @@ class ViolinPlot {
         }
     }
 
-    _createLegendRow() {
-
-    }
-
     /**
-     * 
+     * UpdateVis helper function that modifies the scales.
      */
     _updateScales() {
         let vis = this;
@@ -292,7 +319,6 @@ class ViolinPlot {
             vis._updateScales();
             vis._computeHistogram();
             vis.renderVis();
-
         });
     }
 
