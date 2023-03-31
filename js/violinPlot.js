@@ -59,8 +59,8 @@ class ViolinPlot {
             .join('rect')
                 .classed('year-hist-bins', true)
                 .attr('width', d => vis.xNum(d.length))
-                .attr('height', d => {return 25})
-                //.attr('height', d => {return vis.yScale(d.x0) - vis.yScale(d.x1)})
+                //.attr('height', d => {return 25})
+                .attr('height', d => {return vis.yScale(d.x0) - vis.yScale(d.x1)})
                 .attr('transform', d => `translate(0, ${vis.yScale(d.x1)})`)
 
     }
@@ -68,18 +68,15 @@ class ViolinPlot {
     _renderPoints() {
         let vis = this;
 
-        console.log(vis.data);
         vis.chart.selectAll('.points')
                 .data(vis.data)
             .join('circle')
                 .classed('points', true)
-                // .attr('r', 5)
+                .attr('r', 3)
 				.attr('cy', d => this.yScale(d["REV"]))
-				//.attr('cx', d => this.xScale(d["YEAR"]) + 0.5 * vis.xScale.bandwidth() - this._addJitter(vis.xScale.bandwidth()))
 				.attr('cx', d => this.xScale(d["YEAR"]) + 0.5 * vis.xScale.bandwidth() - Math.abs(this._gaussianRandom()))
-                
+                .attr('transform', 'translate(-3,0)')
                 .attr('class', d => {
-                    console.log(d['PROP_TYPE']);
                     switch(d['PROP_TYPE']) {
                         case 'Currency':
                             return 'currency'
@@ -113,7 +110,6 @@ class ViolinPlot {
             });
 
         console.log(vis.sumstat)
-        
 
         // What is the biggest number of value in a bin? We need it cause this value will have a width of 100% of the bandwidth.
         let maxNum = vis.sumstat
@@ -181,6 +177,9 @@ class ViolinPlot {
         vis.xAxisB = d3.axisBottom(vis.xScale); 
     }
 
+    /**
+     * 
+     */
     _updateScales() {
         let vis = this;
 
@@ -199,7 +198,7 @@ class ViolinPlot {
         return Math.random() * Math.floor(binwidth / 2) | 0;
     }
 
-    _// Standard Normal variate using Box-Muller transform.
+    // Standard Normal variate using Box-Muller transform.
     _gaussianRandom(mean=0, stdev=15) {
         let u = 1 - Math.random(); // Converting [0,1) to (0,1]
         let v = Math.random();
@@ -207,4 +206,7 @@ class ViolinPlot {
         // Transform to the desired mean and standard deviation:
         return z * stdev + mean;
     }
+
+    _filterZeros
+
 }

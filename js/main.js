@@ -1,4 +1,5 @@
 let violinPlot;
+let choroplethMap;
 /**
  * Load data from CSV file asynchronously and visualize it
  */
@@ -28,10 +29,9 @@ Promise.all([
         }
     });
 
-    const choroplethMap = new ChoroplethMap({
+    choroplethMap = new ChoroplethMap({
         parentElement: '#map'
     }, data[0]);
 
-    violinPlot = new ViolinPlot({parentElement:'#violin-plot'}, data);
-})
-    .catch(error => console.error(error));
+    violinPlot = new ViolinPlot({parentElement:'#violin-plot'}, data[1]);
+}).catch(error => console.error(error));
