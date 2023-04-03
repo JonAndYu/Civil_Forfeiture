@@ -4,7 +4,8 @@ class ViolinPlot {
         this.config = {
             parentElement: _config.parentElement,
             legendElement: _config.legendElement,
-            margin: { top: 30, bottom: 20, right: 20, left: 50}
+            margin: { top: 30, bottom: 20, right: 20, left: 50},
+            tooltipPadding: 10,
         };
         this.org_data = JSON.parse(JSON.stringify(_data));
         this.data = _data;
@@ -42,8 +43,8 @@ class ViolinPlot {
         vis._computeHistogram();
 
         // Add button functionality
-        vis._filterZeros("#filter-others");
-        vis._filterZeros("#filter-zeros");
+        vis._filterSelect("#filter-others");
+        vis._filterSelect("#filter-zeros");
 
         vis.renderVis();
     }
@@ -52,124 +53,12 @@ class ViolinPlot {
         let vis = this;
 
         // Render the violin part
-        this._renderViolin();
+        this._renderHistograms();
         this._renderHistogramAxis();
         this._renderPoints();
     }
 
-    /**
-     * Displays the histogram
-     */
-    _renderViolin() {
-        let vis = this;
-
-        vis.chart.selectAll('.year-hist')
-                .data(vis.sumstat, d => [d["year"]])
-            .join('g')
-                .classed('year-hist', true)
-                .attr("transform", d => `translate(${vis.xScale(d["year"]) + 0.5 * vis.xScale.bandwidth()}, 0)`)
-            .selectAll('.year-hist-bins')
-            .data(d => d["value"])
-            .join('rect')
-                .classed('year-hist-bins', true)
-                .attr('width', d => vis.xNum(d.length))
-                .attr('height', d => vis.yScale(d.x0) - vis.yScale(d.x1))
-                .attr('transform', d => `translate(0, ${vis.yScale(d.x1)})`)
-    }
-
-    /**
-     * Displays the points at each year mark.
-     */
-    _renderPoints() {
-        let vis = this;
-        
-        let selection = vis.chart.selectAll('.points')
-            .data(vis.data, d => d["RevenueID"])
-            .join('circle');
-
-        // Checks which of the two buttons are selected.
-        if (d3.select('#filter-others').classed('selected') && d3.select('#filter-zeros').classed('selected')) {
-            selection = selection.filter(d => d["REV"] !== 0 && d['PROP_TYPE'] !== "Other");
-        } else if (d3.select('#filter-others').classed('selected')) {
-            selection = selection.filter(d => d['PROP_TYPE'] !== "Other");
-        } else if (d3.select('#filter-zeros').classed('selected')){
-            selection = selection.filter(d => d["REV"] !== 0);
-        }
-
-
-        selection.classed('points', true)
-            .attr('r', 3)
-			.attr('cy', d => this.yScale(d["REV"]))
-			.attr('cx', d => this.xScale(d["YEAR"]) + 0.5 * vis.xScale.bandwidth() - Math.abs(this._gaussianRandom()))
-            .attr('transform', 'translate(-3,0)')
-            .attr('class', d => {
-                switch(d['PROP_TYPE']) {
-                    case 'Currency':
-                        return 'currency'
-                    case 'Vehicles':
-                        return 'vehicles'
-                    case 'Real Property':
-                        return 'real-property'
-                    default: // Other
-                        return 'other'
-                }
-            });
-    }
-
-    /**
-     * Appends the axis for each histogram. that is displayed at the top of the view.
-     */
-    _renderHistogramAxis() {
-        let vis = this;
-        let topAxis = d3.axisTop(vis.xNum).ticks(3);
-
-        d3.selectAll('.year-hist')
-            .append('g')
-            .attr('class', 'x-axis count')
-            .attr('transform', 'translate(0, 0)')
-            .call(topAxis);
-    }
-
-    /**
-     * Computes a histogram and creates the following class properties.
-     *  vis.sumstat = [{year: ####, value: Array(#)}, ...]
-     *      The value key holds a 2d array where each array contains a property x0 (lower bounds)
-     *      and x1 (upper bounds) of the given bin. The number of bins (size of value) is dictated
-     *      by the thresholds of vis.bin. The length of each 1d array are the amount of values in the bin
-     * 
-     *  vis.xNum is a linear scale that is created by finding the max bin size of all the years.
-     */
-    _computeHistogram() {
-        let vis = this;
-
-        let data = vis.data;
-
-        // Features of the histogram
-        vis.bin = d3.bin()
-            .domain(vis.yScale.domain())
-            .thresholds([1,5,10,25,50,100,250,500,1000, 2500, 5000, 10000, 25000])
-            .value(d => d)
-
-        // Compute the binning for each group of the dataset
-        // Every acc is the entries of a different year.
-        vis.sumstat = Array.from(
-                d3.rollup(data, acc => vis.bin(acc.map(g => g.REV)), d => d.YEAR)
-            ).map(item => {
-                return { year: item[0], value: item[1] };
-            });
-
-        console.log(vis.sumstat)
-
-        // What is the biggest number of value in a bin? We need it cause this value will have a width of 100% of the bandwidth.
-        let maxNum = vis.sumstat
-            .map(item => item["value"].map(i => i.length))
-            .reduce((acc, cur) => Math.max(acc, ...cur), -Infinity);
-
-        // The maximum width of a violin must be x.bandwidth = the width dedicated to a group
-        vis.xNum = d3.scaleLinear()
-            .range([0, Math.floor(vis.xScale.bandwidth() / 2)])
-            .domain([0, maxNum])
-    }
+    //#region Initialization Functions
 
     /**
      * Accesses the DOM to retrieves the dimension (width and height) of the parameter
@@ -181,26 +70,6 @@ class ViolinPlot {
         const {width, height} = svg.node().getBoundingClientRect();
         vis.config.width = width - this.config.margin.left - this.config.margin.right;
         vis.config.height = height - this.config.margin.top - this.config.margin.bottom;
-    }
-
-    /**
-     * Filters out all entries which have a negative revenue.
-     * @param {Object[]} data 
-     * @returns 
-     */
-    _filterNegativeRevenues(data) {
-        return data.filter(d => d.REV > 0)
-    }
-
-    /**
-     * Returns a subset of the data where the entries fall inclusively fall between both bounds.
-     * @param {Object[]} data 
-     * @param {number} lowerBound 
-     * @param {number} upperBound 
-     * @returns 
-     */
-    _filterBetweenRangeOfYears(data, lowerBound, upperBound) {
-        return data.filter(d => d.YEAR >= lowerBound && d.YEAR <= upperBound);
     }
 
     /**
@@ -276,54 +145,6 @@ class ViolinPlot {
         }
     }
 
-    /**
-     * UpdateVis helper function that modifies the scales.
-     */
-    _updateScales() {
-        let vis = this;
-
-        vis.yScale.domain(d3.extent(vis.data, d => d.REV));
-        vis.xScale.domain(d3.range(d3.min(vis.data.map(d => d.YEAR)), d3.max(vis.data.map(d => d.YEAR)) + 1));
-
-        vis.xAxis.call(vis.xAxisB);
-        vis.yAxis.call(vis.yAxisL);
-    }
-
-    /**
-     * Given a binwidth, the function will use a uniform distribution to randomly return a number [0, binwidth / 2]
-     * @param {number} binwidth 
-     */
-    _addJitter(binwidth) {
-        return Math.random() * Math.floor(binwidth / 2) | 0;
-    }
-
-    // Standard Normal variate using Box-Muller transform.
-    _gaussianRandom(mean=0, stdev=15) {
-        let u = 1 - Math.random(); // Converting [0,1) to (0,1]
-        let v = Math.random();
-        let z = Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v );
-        // Transform to the desired mean and standard deviation:
-        return z * stdev + mean;
-    }
-
-    _filterZeros(selector) {
-        let vis = this;
-        let button = d3.select(selector);
-
-        button.on("click", function(event, e) {
-
-            const element = d3.select(this);
-            const isActive = element.classed("selected");
-
-            element.classed("selected", !isActive);
-            
-            // Checks which of the two buttons are selected.
-            vis._updateScales();
-            vis._computeHistogram();
-            vis.renderVis();
-        });
-    }
-
     /** Adds the axis labels */
     _initAxisLabels() {
         let vis = this;
@@ -352,5 +173,249 @@ class ViolinPlot {
         .attr('transform', `translate(${vis.config.width - 20}, -18)`)
         .text("Count");
     }
+
+    //#endregion
+
+    //#region Update Functions
+
+    /**
+     * Computes a histogram and creates the following class properties.
+     *  vis.sumstat = [{year: ####, value: Array(#)}, ...]
+     *      The value key holds a 2d array where each array contains a property x0 (lower bounds)
+     *      and x1 (upper bounds) of the given bin. The number of bins (size of value) is dictated
+     *      by the thresholds of vis.bin. The length of each 1d array are the amount of values in the bin
+     * 
+     *  vis.xNum is a linear scale that is created by finding the max bin size of all the years.
+     */
+    _computeHistogram() {
+        let vis = this;
+
+        let data = vis.data;
+
+        // Features of the histogram
+        vis.bin = d3.bin()
+            .domain(vis.yScale.domain())
+            .thresholds([1,5,10,25,50,100,250,500,1000, 2500, 5000, 10000, 25000])
+            .value(d => d)
+
+        // Compute the binning for each group of the dataset
+        // Every acc is the entries of a different year.
+        vis.sumstat = Array.from(
+                d3.rollup(data, acc => vis.bin(acc.map(g => g.REV)), d => d.YEAR)
+            ).map(item => {
+                return { year: item[0], value: item[1] };
+            });
+
+        console.log(vis.sumstat)
+
+        // What is the biggest number of value in a bin? We need it cause this value will have a width of 100% of the bandwidth.
+        let maxNum = vis.sumstat
+            .map(item => item["value"].map(i => i.length))
+            .reduce((acc, cur) => Math.max(acc, ...cur), -Infinity);
+
+        // The maximum width of a violin must be x.bandwidth = the width dedicated to a group
+        vis.xNum = d3.scaleLinear()
+            .range([0, Math.floor(vis.xScale.bandwidth() / 2)])
+            .domain([0, maxNum])
+    }
+
+    /**
+     * UpdateVis helper function that modifies the scales.
+     */
+    _updateScales() {
+        let vis = this;
+
+        vis.yScale.domain(d3.extent(vis.data, d => d.REV));
+        vis.xScale.domain(d3.range(d3.min(vis.data.map(d => d.YEAR)), d3.max(vis.data.map(d => d.YEAR)) + 1));
+
+        vis.xAxis.call(vis.xAxisB);
+        vis.yAxis.call(vis.yAxisL);
+    }
+
+    //#endregion
+
+    //#region Render Functions
+
+    /**
+     * Appends the axis for each histogram. that is displayed at the top of the view.
+     */
+    _renderHistogramAxis() {
+        let vis = this;
+        let topAxis = d3.axisTop(vis.xNum).ticks(3);
+
+        d3.selectAll('.year-hist')
+            .append('g')
+            .attr('class', 'x-axis count')
+            .attr('transform', 'translate(0, 0)')
+            .call(topAxis);
+    }
+
+    /**
+     * Displays the points at each year mark.
+     */
+    _renderPoints() {
+        let vis = this;
+        
+        let selection = vis.chart.selectAll('.points')
+            .data(vis.data, d => d["RevenueID"])
+            .join('circle');
+
+        // Checks which of the two buttons are selected.
+        if (d3.select('#filter-others').classed('selected') && d3.select('#filter-zeros').classed('selected')) {
+            selection = selection.filter(d => d["REV"] !== 0 && d['PROP_TYPE'] !== "Other");
+        } else if (d3.select('#filter-others').classed('selected')) {
+            selection = selection.filter(d => d['PROP_TYPE'] !== "Other");
+        } else if (d3.select('#filter-zeros').classed('selected')){
+            selection = selection.filter(d => d["REV"] !== 0);
+        }
+
+
+        selection.classed('points', true)
+            .attr('r', 3)
+			.attr('cy', d => this.yScale(d["REV"]))
+			.attr('cx', d => this.xScale(d["YEAR"]) + 0.5 * vis.xScale.bandwidth() - Math.abs(this._gaussianRandom()))
+            .attr('transform', 'translate(-3,0)')
+            .attr('class', d => {
+                switch(d['PROP_TYPE']) {
+                    case 'Currency':
+                        return 'currency'
+                    case 'Vehicles':
+                        return 'vehicles'
+                    case 'Real Property':
+                        return 'real-property'
+                    default: // Other
+                        return 'other'
+                }
+            });
+    }
+
+    /**
+     * Displays the histogram
+     */
+    _renderHistograms() {
+        let vis = this;
+
+        vis.chart.selectAll('.year-hist')
+                .data(vis.sumstat, d => [d["year"]])
+            .join('g')
+                .classed('year-hist', true)
+                .attr("transform", d => `translate(${vis.xScale(d["year"]) + 0.5 * vis.xScale.bandwidth()}, 0)`)
+            .selectAll('.year-hist-bins')
+            .data(d => d["value"])
+            .join('rect')
+                .classed('year-hist-bins', true)
+                .attr('width', d => vis.xNum(d.length))
+                .attr('height', d => vis.yScale(d.x0) - vis.yScale(d.x1))
+                .attr('transform', d => `translate(0, ${vis.yScale(d.x1)})`)
+                .on('mouseover', function(event, e) {
+                    d3.select('#tooltip')
+                      .style('opacity', 1)
+                      .html(`
+                      <div class="tooltip-title">${e.length} observations between \n revenue ${e.x0} and ${e.x1}</div>
+                      `);
+                })
+                .on('mousemove', function (event, e) {
+                    console.log(this);
+                    console.log(e); // Length is the number in bin. X0 is the smallest in bin and x1 is the largest in bin
+                    console.log(event);
+                    d3.select('#tooltip')
+                    .style('display', 'block')
+                    .style('left', (event.pageX + vis.config.tooltipPadding) + 'px')
+                    .style('top', (event.pageY + vis.config.tooltipPadding) + 'px')
+			    })
+                .on('mouseleave', () => {
+                    d3.select('#tooltip').style('display', 'none');
+                });
+
+        // vis._addHistogramTooltip();
+    }
+
+    //#endregion
+
+    //#region Helper Functions
+
+    /**
+     * Filters out all entries which have a negative revenue.
+     * @param {Object[]} data 
+     * @returns 
+     */
+    _filterNegativeRevenues(data) {
+        return data.filter(d => d.REV > 0)
+    }
+
+    /**
+     * Returns a subset of the data where the entries fall inclusively fall between both bounds.
+     * @param {Object[]} data 
+     * @param {number} lowerBound 
+     * @param {number} upperBound 
+     * @returns 
+     */
+    _filterBetweenRangeOfYears(data, lowerBound, upperBound) {
+        return data.filter(d => d.YEAR >= lowerBound && d.YEAR <= upperBound);
+    }
+
+    /**
+     * Given a binwidth, the function will use a uniform distribution to randomly return a number [0, binwidth / 2]
+     * @param {number} binwidth 
+     */
+    _addJitter(binwidth) {
+        return Math.random() * Math.floor(binwidth / 2) | 0;
+    }
+
+    // Standard Normal variate using Box-Muller transform.
+    _gaussianRandom(mean=0, stdev=15) {
+        let u = 1 - Math.random(); // Converting [0,1) to (0,1]
+        let v = Math.random();
+        let z = Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v );
+        // Transform to the desired mean and standard deviation:
+        return z * stdev + mean;
+    }
+
+    //#endregion
+
+
+    //#region Event Handlers
+
+    /**
+     * Button Even Listender
+     * @param {*} selector 
+     */
+    _filterSelect(selector) {
+        let vis = this;
+        let button = d3.select(selector);
+
+        button.on("click", function(event, e) {
+
+            const element = d3.select(this);
+            const isActive = element.classed("selected");
+
+            element.classed("selected", !isActive);
+            
+            // Checks which of the two buttons are selected.
+            vis._updateScales();
+            vis._computeHistogram();
+            vis.renderVis();
+        });
+    }
+
+    /**
+     * Adds tooltip event listener for histogram
+     */
+    _addHistogramTooltip(selector = '.year-hist-bins') {
+        let vis = this;
+        let histograms = d3.selectAll(selector)
+
+        histograms.on('mouseover', function(event, e) {
+            d3.select('#tooltip')
+            .style('display', 'block')
+            .style('left', (event.pageX + vis.config.tooltipPadding) + 'px')
+            .style('top', (event.pageY + vis.config.tooltipPadding) + 'px')
+            .html(`
+                <div class="tooltip-title">${d.trail}</div>
+                `);
+        })
+    }
+
+    //#endregion
 
 }
