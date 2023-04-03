@@ -4,23 +4,19 @@ class ViolinPlot {
         this.config = {
             parentElement: _config.parentElement,
             legendElement: _config.legendElement,
-            margin: { top: 30, bottom: 20, right: 20, left: 50},
+            margin: { top: 30, bottom: 20, right: 20, left: 100},
             tooltipPadding: 10,
         };
         this.org_data = JSON.parse(JSON.stringify(_data));
         this.data = _data;
-        console.log([...new Set(this.data.map(d => d["YEAR"]))]);
-        [this.lower, this.upper] = d3.extent(this.data.map(d => d["YEAR"]));
-        this.lower = this.lower === 0 ? 1986 : this.lower;
+        // [this.lower, this.upper] = d3.extent(this.data.map(d => d["YEAR"]));
+        // this.lower = this.lower === 0 ? 1986 : this.lower;
         this.initVis();
     }
 
     initVis() {
         let vis = this;
         vis.svg = d3.select(this.config.parentElement);
-        console.log(this.lower);
-        console.log(this.upper);
-        console.log(vis._buildBin(this.lower, this.upper));
         
         vis._instantiateConfigDimensions(vis.svg);
 
@@ -42,7 +38,7 @@ class ViolinPlot {
     updateVis() {
         let vis = this;
 
-        vis.data = vis._filterBetweenRangeOfYears(vis._filterNegativeRevenues(vis.data), 1995, 2009);
+        vis.data = vis._filterBetweenRangeOfYears(vis._filterNegativeRevenues(vis.data), 2000, 2004);
 
         vis._updateScales();
 
@@ -102,8 +98,8 @@ class ViolinPlot {
             .attr('class', 'axis x-axis')
             .attr('transform', `translate(0, ${vis.config.height})`);
 
-        vis.yAxisL = d3.axisLeft(vis.yScale).tickValues([1, 5, 10,25,50,100,250,500,1000, 2500, 5000, 10000, 25000]);
-
+        //vis.yAxisL = d3.axisLeft(vis.yScale).tickValues([1, 5, 10,25,50,100,250,500,1000, 2500, 5000, 10000, 25000]);
+        vis.yAxisL = d3.axisLeft(vis.yScale).tickValues([...Array(30).keys()].map((_, i) => 2**(i+1)));
         vis.yAxis = vis.chartArea.append('g')
             .attr('class', 'axis y-axis');
             
@@ -201,7 +197,7 @@ class ViolinPlot {
         // Features of the histogram
         vis.bin = d3.bin()
             .domain(vis.yScale.domain())
-            .thresholds([1,5,10,25,50,100,250,500,1000, 2500, 5000, 10000, 25000])
+            .thresholds([...Array(30).keys()].map((_, i) => 2**(i+1)))
             .value(d => d)
 
         // Compute the binning for each group of the dataset
@@ -425,9 +421,7 @@ class ViolinPlot {
             }
         }
 
-        if (typeof optimalBin !== 'undefined') return { numberOfBins: optimalBin, remainder: 0 };
-
-        return secondBest;      
+        return  (typeof optimalBin !== 'undefined') ? { numberOfBins: optimalBin, remainder: 0 } : secondBest;    
     }
 
     _buildBin(lower, upper) {
