@@ -9,12 +9,18 @@ class ViolinPlot {
         };
         this.org_data = JSON.parse(JSON.stringify(_data));
         this.data = _data;
+        console.log([...new Set(this.data.map(d => d["YEAR"]))]);
+        [this.lower, this.upper] = d3.extent(this.data.map(d => d["YEAR"]));
+        this.lower = this.lower === 0 ? 1986 : this.lower;
         this.initVis();
     }
 
     initVis() {
         let vis = this;
         vis.svg = d3.select(this.config.parentElement);
+        console.log(this.lower);
+        console.log(this.upper);
+        console.log(vis._buildBin(this.lower, this.upper));
         
         vis._instantiateConfigDimensions(vis.svg);
 
@@ -36,7 +42,7 @@ class ViolinPlot {
     updateVis() {
         let vis = this;
 
-        vis.data = vis._filterBetweenRangeOfYears(vis._filterNegativeRevenues(vis.data), 1986, 1991);
+        vis.data = vis._filterBetweenRangeOfYears(vis._filterNegativeRevenues(vis.data), 1995, 2009);
 
         vis._updateScales();
 
@@ -371,13 +377,107 @@ class ViolinPlot {
         return z * stdev + mean;
     }
 
+    /**
+     * Algorithm to evenly divide a range of years into bins.
+     * Because our dataset only includes the years 1986-2019
+     * This will return a map with the maximum bin size, this will all it to
+     * only be called once.
+     * The possible bin sizes are 3, 4, 5.
+     * If the number of years are evenly divisible by any one of these numbers, then that will be used as the number of bins.
+     *  - numYears / binsizes
+     * @param {number} lower 
+     * @param {number} upper 
+     * @returns 
+     */
+    _binYears(lower, upper) {
+        let vis = this;
+        let numYears = upper - lower + 1;
+        
+        let range = Array(upper - lower + 1).fill(0).reduce((acc, _, i) => acc.concat(lower + i), []);
+
+        if (numYears < 6)
+            return range
+            
+        let binSizes = [3, 4, 5]
+
+        let optimalBin = undefined;
+        let secondBest = undefined;
+
+        for (let idx in binSizes) {
+            let currBinNumber = binSizes[idx]
+            if (numYears / currBinNumber === 0) {
+                // This means that it is an evenly divisible and it's a good value.
+                // If multiple are evenly divisible be the nature of the binSizes array, it'll get the max.
+                optimalBin = currBinNumber;
+                break;
+            } else {
+                secondBest = {
+                    numberOfBins: currBinNumber,
+                    remainder: numYears % currBinNumber 
+                }
+                for (let currBin of binSizes) {
+                    let currMod = numYears % currBin;
+                    if (secondBest['remainder'] < currMod) {
+                        secondBest['numberOfBins'] = currBin;
+                        secondBest['remainder'] = currMod;
+                    }
+                }
+            }
+        }
+
+        if (typeof optimalBin !== 'undefined') return { numberOfBins: optimalBin, remainder: 0 };
+
+        return secondBest;      
+    }
+
+    _buildBin(lower, upper) {
+        let range = Array(upper - lower + 1).fill(0).reduce((acc, _, i) => acc.concat(lower + i), []);
+        let vis = this;
+        let binRes = vis._binYears(lower, upper)
+        let res = vis._thresholdBuilder(binRes, lower, upper);
+        let bin = d3.bin()
+            .domain([lower, upper])
+            .thresholds(res);
+        return bin(range);
+    }
+
+    /**
+     * Given lower = 1995, upper = 2010 = returns [1999, 2002, 2005,2008,2011]
+     * @param {*} numberOfBins 
+     * @param {*} remainder 
+     * @param {*} lower 
+     * @param {*} upper 
+     */
+    _thresholdBuilder({numberOfBins, remainder}, lower, upper) {
+        let perBin = (upper - lower + 1) / numberOfBins; // 3
+        let res = []
+
+        let yearCount = lower;
+
+        while (remainder != 0) {
+            yearCount += parseInt(perBin) + 1;
+            res.push(yearCount);
+            numberOfBins--;
+            remainder--;
+        }
+
+        while (numberOfBins != 0) {
+            yearCount += parseInt(perBin);
+            res.push(yearCount);
+            numberOfBins--;
+        }
+
+        return res;
+
+    }
+
     //#endregion
 
 
     //#region Event Handlers
 
     /**
-     * Button Even Listender
+     * Button Event Listender
      * @param {*} selector 
      */
     _filterSelect(selector) {
