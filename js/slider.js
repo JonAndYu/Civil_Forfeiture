@@ -53,7 +53,6 @@ class Slider {
             .on("onchange", function(d) {
                 vis.selected_range[0].value = d[0];
                 vis.selected_range[1].value = d[1];
-                // vis.updateVis();
             });
 
         vis.updateVis();
