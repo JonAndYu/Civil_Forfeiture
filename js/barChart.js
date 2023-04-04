@@ -16,11 +16,11 @@ class BarChart {
         vis.width = vis.config.containerWidth - vis.config.margin.left - vis.config.margin.right;
         vis.height = vis.config.containerHeight - vis.config.margin.top - vis.config.margin.bottom;
 
+
         vis.xScale = d3.scaleBand()
             .range([0, vis.width])
             .paddingInner(0.2)
             .paddingOuter(0.2);
-            // .domain(['Vehicles','Others','Currency','Real Property']);
 
         vis.yScale = d3.scaleLinear()
             .range([vis.height, 0]);
@@ -47,36 +47,75 @@ class BarChart {
         vis.yAxisG = vis.chart.append('g')
             .attr('class', 'axis y-axis');
 
+        // Append both axis titles
+        vis.svg.append('text')
+            .attr('class', 'axis-title')
+            .attr('y', vis.height - 15)
+            .attr('x', vis.config.containerWidth)
+            .attr('dy', '.71em')
+            .style('text-anchor', 'end')
+            .text('Property type');
+
+        vis.svg.append('text')
+            .attr('class', 'axis-title')
+            .attr('x', 0)
+            .attr('y', 0)
+            .attr('dy', '.71em')
+            .text('Revenue in US Dollars');
+
+        // color palette for different conviction types
+        vis.colors = ['#e41a1c','#fffff1','#377eb8'];
+
+        // append legends
+        vis.legend = vis.chart.append("g")
+            .attr("font-family", "sans-serif")
+            .attr("font-size", 10)
+            .attr("text-anchor", "end")
+            .selectAll("g")
+            .data(['Conviction','No Conviction','Unknown'])
+            .enter().append("g")
+            .attr("transform", function(d, i) { return "translate(-30," + i * 20 + ")"; });
+
+        vis.legend.append("rect")
+            .attr("x", vis.width - 19)
+            .attr("width", 19)
+            .attr("height", 19)
+            .attr("fill", function(d, i) {
+            return vis.colors[i]; });
+
+        vis.legend.append("text")
+            .attr("x", vis.width - 24)
+            .attr("y", 9.5)
+            .attr("dy", "0.32em")
+            .text(function(d) { return d; });
+
         vis.updateVis();
 
     }
 
     updateVis() {
         let vis = this;
-        //d.YEAR >= 1986 && d.YEAR <= 1991
 
-        vis.subgroups = ['Conviction','No Conviction',"Unknown"];
+        // filtering data by property types and conviction type
+        vis.subgroups = ['Conviction','No_Conviction','Unknown'];
         vis.filteredData = vis.data.filter(d => d.REV > 0 && d.PROP_TYPE != NaN && d.REV != NaN);
         vis.finalData = d3.rollup(vis.filteredData, v => d3.sum(v, d=>d.REV), d=>d.PROP_TYPE, d=>d.CONV_TYPE);
+
+        //rollup data get sum of REV by prop_type
         vis.data1 = d3.rollup(vis.filteredData, v => d3.sum(v, d=>d.REV), d=>d.PROP_TYPE);
         vis.data2 = Array.from(vis.data1, ([name, value])=> ({name, value}));
-        console.log(vis.data2);
 
-        for (const d in vis.data1){
-            console.log(d);
-
-        }
-
+        // process data
         let max = 0;
         vis.dataToUse = [];
         vis.realData = [];
         for (const data of vis.finalData){
             let prop_type = data[0];
-            let mapd = data[1];
+            let map = data[1];
             let conv = 0;
             let no_conv = 0;
             let unknown = 0;
-            for (const conv_type of mapd){
+            for (const conv_type of map){
                 vis.dataToUse.push({PROP_TYPE: prop_type, CONV_TYPE: conv_type[0], REV: conv_type[1]});
                 if (conv_type[1]>max){
                     max = conv_type[1];
@@ -91,14 +130,15 @@ class BarChart {
             }
         vis.realData.push({PROP_TYPE: prop_type, Conviction: conv, No_Conviction: no_conv, Unknown: unknown});
         }
+        
+        // stack the data
+        vis.stackedData = d3.stack()
+            .keys(vis.subgroups)
+            (vis.realData);
 
-
-        vis.xValue = d => d.name;
-        vis.yValue = d => d.value;
-        vis.yScale.domain([0, max]);
-
+        // set the domain of the scales
+        vis.yScale.domain([0, max]).nice();
         vis.xScale.domain(vis.data2.map(d=>d.name));
-        // vis.xScale.domain(vis.filteredData.map(d => d.PROP_TYPE));
 
         vis.renderVis();
 
@@ -106,37 +146,26 @@ class BarChart {
 
     renderVis() {
         let vis = this;
-        var colors = ['#e41a1c','#377eb8','#ffffff'];
-        var groups = ['Vehicles','Others','Currency','Real Property'];
-        var subgroups = ['Conviction','No_Conviction','Unknown'];
-        vis.stackedData = d3.stack()
-            .keys(subgroups)
-            (vis.realData);
-        console.log(vis.stackedData);
-
-
-        let bars = vis.chart.selectAll('.bar')
-            .data(vis.data2, d=>d.name)
-            .join('rect')
-            .attr('class', 'bar')
-            .attr('x', d => vis.xScale(vis.xValue(d)))
-            .attr('width', vis.xScale.bandwidth())
-            .attr('height', d => vis.height - vis.yScale(vis.yValue(d)))
-            .attr('y', d => vis.yScale(vis.yValue(d)))
-
-        // let bars = vis.chart.selectAll('g')
-        //     .data(vis.stackedData)
-        //     .enter().append('g')
-        //     .attr("class", "bars")
-        //     .attr("fill", function(d, i) { return colors[i]; })
-        //     .selectAll("rect")
-        //     // enter a second time = loop subgroup per subgroup to add all rectangles
-        //     .data(function(d) { return d; })
-        //     .enter().append("rect")
-        //     .attr("x", function(d) { return vis.xScale(d.data.group); })
-        //     .attr("y", function(d) { return vis.yScale(d[1]); })
-        //     .attr("height", function(d) { return vis.yScale(d[0]) - vis.yScale(d[1]); })
-        //     .attr("width",vis.xScale.bandwidth());
+        
+        let bars = vis.chart.append('g').selectAll('g')
+            .data(vis.stackedData)
+            .enter().append('g')
+            .attr("class", "bars")
+            .attr('opacity', 0.5)
+            .attr("fill", function(d, i) {
+                return vis.colors[i]; })
+            .selectAll("rect")
+            // enter a second time = loop subgroup per subgroup to add all rectangles
+            .data(function(d) {return d; })
+            .enter().append("rect")
+            .attr("x", function(d) {
+                return vis.xScale(d.data.PROP_TYPE); })
+            .attr("y", function(d) {
+                return vis.yScale(d[1]); })
+            .attr("height", function(d) {
+                return vis.yScale(d[0]) - vis.yScale(d[1]);
+            })
+            .attr("width", vis.xScale.bandwidth());
 
 
         vis.xAxisG.call(vis.xAxis);
