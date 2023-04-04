@@ -464,9 +464,7 @@ class ViolinPlot {
         return res;
 
     }
-
     //#endregion
-
 
     //#region Event Handlers
 
@@ -490,24 +488,6 @@ class ViolinPlot {
             vis._computeHistogram();
             vis.renderVis();
         });
-    }
-
-    /**
-     * Adds tooltip event listener for histogram
-     */
-    _addHistogramTooltip(selector = '.year-hist-bins') {
-        let vis = this;
-        let histograms = d3.selectAll(selector)
-
-        histograms.on('mouseover', function(event, e) {
-            d3.select('#tooltip')
-            .style('display', 'block')
-            .style('left', (event.pageX + vis.config.tooltipPadding) + 'px')
-            .style('top', (event.pageY + vis.config.tooltipPadding) + 'px')
-            .html(`
-                <div class="tooltip-title">${d.trail}</div>
-                `);
-        })
     }
 
     //#endregion
