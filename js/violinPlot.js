@@ -7,10 +7,8 @@ class ViolinPlot {
             margin: { top: 30, bottom: 20, right: 20, left: 100},
             tooltipPadding: 10,
         };
-        this.org_data = JSON.parse(JSON.stringify(_data));
-        this.data = _data;
-        // [this.lower, this.upper] = d3.extent(this.data.map(d => d["YEAR"]));
-        // this.lower = this.lower === 0 ? 1986 : this.lower;
+        this.data = _data.filter(d => d["YEAR"] >=1986);
+        this.org_data = JSON.parse(JSON.stringify(this.data));
         this.initVis();
     }
 
@@ -30,23 +28,36 @@ class ViolinPlot {
 
         vis._initLegend();
 
-        vis._initAxisLabels();
-
-        vis.updateVis();
-    }
-
-    updateVis() {
-        let vis = this;
-
-        vis.data = vis._filterBetweenRangeOfYears(vis._filterNegativeRevenues(vis.data), 2000, 2004);
-
-        vis._updateScales();
-
-        vis._computeHistogram();
+        // vis._initAxisLabels();
 
         // Add button functionality
         vis._filterSelect("#filter-others");
         vis._filterSelect("#filter-zeros");
+
+        vis.updateVis({isFiltered : false});
+    }
+
+    updateVis({isFiltered} = {isFiltered : false}) {
+        let vis = this;
+        console.log(isFiltered);
+
+        if (!isFiltered) {
+            vis.data = vis.org_data
+            //vis.data = vis._filterBetweenRangeOfYears(vis._filterNegativeRevenues(vis.org_data), 2000, 2004);
+        } else {
+            // Checks which of the two buttons are selected.
+            if (d3.select('#filter-others').classed('selected') && d3.select('#filter-zeros').classed('selected')) {
+                vis.data = vis.org_data.filter(d => d["REV"] !== 0 && d['PROP_TYPE'] !== "Other");
+            } else if (d3.select('#filter-others').classed('selected')) {
+                vis.data = vis.org_data.filter(d => d['PROP_TYPE'] !== "Other");
+            } else if (d3.select('#filter-zeros').classed('selected')){
+                vis.data = vis.org_data.filter(d => d["REV"] !== 0);
+            }
+        }
+
+        vis._updateScales();
+
+        vis._computeHistogram();
 
         vis.renderVis();
     }
@@ -262,16 +273,6 @@ class ViolinPlot {
             .data(vis.data, d => d["RevenueID"])
             .join('circle');
 
-        // Checks which of the two buttons are selected.
-        if (d3.select('#filter-others').classed('selected') && d3.select('#filter-zeros').classed('selected')) {
-            selection = selection.filter(d => d["REV"] !== 0 && d['PROP_TYPE'] !== "Other");
-        } else if (d3.select('#filter-others').classed('selected')) {
-            selection = selection.filter(d => d['PROP_TYPE'] !== "Other");
-        } else if (d3.select('#filter-zeros').classed('selected')){
-            selection = selection.filter(d => d["REV"] !== 0);
-        }
-
-
         selection.classed('points', true)
             .attr('r', 3)
 			.attr('cy', d => this.yScale(d["REV"]))
@@ -317,9 +318,6 @@ class ViolinPlot {
                       `);
                 })
                 .on('mousemove', function (event, e) {
-                    console.log(this);
-                    console.log(e); // Length is the number in bin. X0 is the smallest in bin and x1 is the largest in bin
-                    console.log(event);
                     d3.select('#tooltip')
                     .style('display', 'block')
                     .style('left', (event.pageX + vis.config.tooltipPadding) + 'px')
@@ -484,9 +482,10 @@ class ViolinPlot {
             element.classed("selected", !isActive);
             
             // Checks which of the two buttons are selected.
-            vis._updateScales();
-            vis._computeHistogram();
-            vis.renderVis();
+            // vis._updateScales();
+            // vis._computeHistogram();
+            // vis.renderVis();
+            vis.updateVis({isFiltered : true})
         });
     }
 

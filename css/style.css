@@ -50,9 +50,9 @@
 
 /* Violin Plot Styling */
 #violin-area {
-    height: 400px;
+    height: 450px;
     width: auto;
-    padding: 20px;
+    padding: 5px;
 }
 
 #violin-div {
