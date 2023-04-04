@@ -181,3 +181,13 @@ legend {
 .legend-label {
     font-size: .7rem;
 }
+
+
+#description {
+    width: 400px;
+    text-align: left;
+    position: absolute;
+    right: 100px;
+    top: 70px;
+
+}
