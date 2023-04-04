@@ -20,6 +20,19 @@
     font-weight: 600;
 }
 
+#labelleft, #labelright {
+    dominant-baseline: hanging;
+    font-size: 12px;
+}
+
+#labelleft {
+    text-anchor: end;
+}
+
+#labelright {
+    text-anchor: start;
+}
+
 /*bar chat styling*/
 #bar-chart-area {
     position: absolute;
@@ -154,6 +167,14 @@
 .legend-label {
     font-size: .7rem;
 }
+
+
+#description {
+    width: 400px;
+    text-align: left;
+    position: absolute;
+    right: 100px;
+    top: 70px;
 
 /* .legend-label#violin-area {
     font-size: .4em;

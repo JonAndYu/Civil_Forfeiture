@@ -1,6 +1,7 @@
 let violinPlot;
 let choroplethMap;
 let barChart;
+let slider;
 /**
  * Load data from CSV file asynchronously and visualize it
  */
@@ -29,6 +30,8 @@ Promise.all([
             }
         }
     });
+
+    slider = new Slider({parentElement:'#slider'}, data[1]);
 
     choroplethMap = new ChoroplethMap({
         parentElement: '#map'
