@@ -7,3 +7,4 @@ Citations and References:
 
     -States-10m.json from https://github.com/topojson/us-atlas
     
+    -slider component from https://unpkg.com/d3-simple-slider
