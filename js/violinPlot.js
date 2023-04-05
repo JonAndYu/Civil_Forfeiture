@@ -7,7 +7,7 @@ class ViolinPlot {
             margin: { top: 30, bottom: 20, right: 20, left: 100},
             tooltipPadding: 10,
         };
-        this.data = _data.filter(d => d["YEAR"] >=1986);
+        this.data = _data.filter(d => d["YEAR"] >= 1986 && d["REV"] >= 0);
         this.org_data = JSON.parse(JSON.stringify(this.data));
         this.initVis();
     }
@@ -17,6 +17,7 @@ class ViolinPlot {
         vis.svg = d3.select(this.config.parentElement);
         
         vis._instantiateConfigDimensions(vis.svg);
+        // console.log("Gets here");
 
         // Creating the Chart.
         vis.chartArea = vis.svg.append('g')
@@ -39,8 +40,6 @@ class ViolinPlot {
 
     updateVis({isFiltered} = {isFiltered : false}) {
         let vis = this;
-        console.log(isFiltered);
-
         if (!isFiltered) {
             vis.data = vis.org_data
             //vis.data = vis._filterBetweenRangeOfYears(vis._filterNegativeRevenues(vis.org_data), 2000, 2004);
@@ -54,10 +53,17 @@ class ViolinPlot {
                 vis.data = vis.org_data.filter(d => d["REV"] !== 0);
             }
         }
+        
+        [this.lower, this.upper] = d3.extent(this.data.map(d => d["YEAR"]));
+        this.yearBins = this._buildBin(this.lower, this.upper);
+        console.log(this.yearBins);
+
+        this._binData();
 
         vis._updateScales();
 
         vis._computeHistogram();
+        console.log(this.sumstat);
 
         vis.renderVis();
     }
@@ -219,8 +225,6 @@ class ViolinPlot {
                 return { year: item[0], value: item[1] };
             });
 
-        console.log(vis.sumstat)
-
         // What is the biggest number of value in a bin? We need it cause this value will have a width of 100% of the bandwidth.
         let maxNum = vis.sumstat
             .map(item => item["value"].map(i => i.length))
@@ -239,10 +243,28 @@ class ViolinPlot {
         let vis = this;
 
         vis.yScale.domain(d3.extent(vis.data, d => d.REV));
-        vis.xScale.domain(d3.range(d3.min(vis.data.map(d => d.YEAR)), d3.max(vis.data.map(d => d.YEAR)) + 1));
+        //vis.xScale.domain(d3.range(d3.min(vis.data.map(d => d.YEAR)), d3.max(vis.data.map(d => d.YEAR)) + 1));
+        console.log(vis.yearBins.map(bin => `${bin['x0']} - ${bin['x1']-1}`));
+        vis.xScale.domain(vis.yearBins.map(bin => `${bin['x0']} - ${bin['x1']-1}`));
 
         vis.xAxis.call(vis.xAxisB);
         vis.yAxis.call(vis.yAxisL);
+    }
+
+    /**
+     * Bin vis.data based on this.yearBins. Each array of yearBins will have a x0 and x1.
+     * if bin[x0] <= row["YEAR"] < bin[x1] then row["YEAR"] = "x0 - x1 - 1"
+     */
+    _binData() {
+        let vis = this;
+        
+        vis.data.forEach(row => {
+            for (const bin of this.yearBins) {
+                if (row["YEAR"] >= bin['x0'] && row["YEAR"] < bin['x1']) {
+                    row["YEAR"] = `${bin['x0']} - ${bin['x1']-1}`
+                }
+            }
+        })
     }
 
     //#endregion
@@ -422,23 +444,31 @@ class ViolinPlot {
         return  (typeof optimalBin !== 'undefined') ? { numberOfBins: optimalBin, remainder: 0 } : secondBest;    
     }
 
+    /**
+     * Evenly divides a set of numbers in bins of one of size 3, 4, 5.
+     * @param {number} lower 
+     * @param {number} upper 
+     * @returns A 2d array where each array contains arr[x0] <= val < arr[x1]
+     */
     _buildBin(lower, upper) {
         let range = Array(upper - lower + 1).fill(0).reduce((acc, _, i) => acc.concat(lower + i), []);
         let vis = this;
         let binRes = vis._binYears(lower, upper)
-        let res = vis._thresholdBuilder(binRes, lower, upper);
+        let thresholdArr = vis._thresholdBuilder(binRes, lower, upper);
         let bin = d3.bin()
             .domain([lower, upper])
-            .thresholds(res);
-        return bin(range);
+            .thresholds(thresholdArr);
+        let resArray = bin(range);
+        resArray[resArray.length - 1]['x1']++;
+        return resArray;
     }
 
     /**
      * Given lower = 1995, upper = 2010 = returns [1999, 2002, 2005,2008,2011]
-     * @param {*} numberOfBins 
-     * @param {*} remainder 
-     * @param {*} lower 
-     * @param {*} upper 
+     * @param {number} numberOfBins 
+     * @param {number} remainder 
+     * @param {number} lower 
+     * @param {number} upper 
      */
     _thresholdBuilder({numberOfBins, remainder}, lower, upper) {
         let perBin = (upper - lower + 1) / numberOfBins; // 3
