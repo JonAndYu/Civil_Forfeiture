@@ -50,9 +50,9 @@
 
 /* Violin Plot Styling */
 #violin-area {
-    height: 400px;
+    height: 450px;
     width: auto;
-    padding: 20px;
+    padding: 5px;
 }
 
 #violin-div {
@@ -131,7 +131,7 @@
 /* Scatterplot Marks */
 
 .points {
-    opacity: 0.15;
+    opacity: 0.05;
 }
 
 .vehicles {

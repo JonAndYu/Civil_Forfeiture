@@ -26,6 +26,8 @@ def main():
 
     revenue["REV"] = revenue["REV"].fillna(0)
 
+    revenue = revenue.drop(revenue[(revenue['YEAR'] == 0)].index)
+
     print(revenue[categories].nunique())
     print(revenue.columns)
 
