@@ -41,4 +41,17 @@ Promise.all([
     console.log(violinPlot);
     barChart = new BarChart({parentElement:'#bar-chart'}, data[1]);
 
+
+    d3.selectAll('.state').on('click', function() {
+
+        let selectedCategory = d3.select(this).attr('name');
+
+        // Filter data accordingly and update vis
+        barChart.data = revData.filter(d => selectedCategory.localeCompare(d.STATE));
+        violinPlot.data = revData.filter(d => selectedCategory.localeCompare(d.STATE));
+
+        barChart.updateVis();
+        violinPlot.updateVis();
+    });
+
 }).catch(error => console.error(error));

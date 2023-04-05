@@ -109,6 +109,7 @@ class ChoroplethMap {
             .join('path')
             .attr('class', 'state')
             .attr('d', vis.geoPath)
+            .attr('name', d => d.properties.name)
             .attr('fill', d => {
                 if (d.properties.data_density) {
                     return vis.colorScale(d.properties.data_density);
