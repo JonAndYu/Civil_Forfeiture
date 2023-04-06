@@ -34,11 +34,13 @@ class LineChart {
         vis._filterSelect("#filter-others");
         vis._filterSelect("#filter-zeros");
 
-        vis.updateVis({isFiltered : false});
+        vis.updateVis();
     }
 
-    updateVis({isFiltered} = {isFiltered : false}) {
+    updateVis() {
         let vis = this;
+
+        vis.dataPoints = vis._createPointsData();
 
         vis._updateScales();
 
@@ -48,6 +50,7 @@ class LineChart {
     renderVis() {
         let vis = this;
 
+        vis._renderPoints();
     }
 
     //#region Initialization Functions
@@ -185,9 +188,59 @@ class LineChart {
         vis.yAxis.call(vis.yAxisL);
     }
 
+    /**
+     * [
+     *  { 
+     *      year: ####, 
+     *      proportion: Conv/nonConvic+conv+other, 
+     *      prop_type = "Other" | "Vehicles" | "Currency" | "Real-Property"
+     *  },
+     *  { 
+     *      year: ####, 
+     *      proportion: Conv/nonConvic+conv+other, 
+     *      prop_type = "Other" | "Vehicles" | "Currency" | "Real-Property"
+     *  },
+     *  ...
+     * ]
+     */
+    _createPointsData() {
+        let vis = this;
+        let ans = [];
+        let yearGroups = d3.groups(vis.data, d => d["YEAR"]);
+
+        for (let i in yearGroups) {
+            let currYear = yearGroups[i][0]
+            let yearArray = yearGroups[i][1]
+            let propGroups = d3.groups(yearArray, d => d["PROP_TYPE"]);
+            for (let j in propGroups) {
+                let currGroup = propGroups[j][0]
+                let dataArray = propGroups[j][1]
+
+                let convCount = dataArray.reduce((acc, currentValue) => currentValue["CONV_TYPE"] === "Conviction" ? acc + 1 : acc, 0);
+                let nonConvicCount = dataArray.reduce((acc, currentValue) => currentValue["CONV_TYPE"] === "No Conviction" ? acc + 1 : acc, 0)
+                let total = (convCount + nonConvicCount);
+                if (total === 0) break;
+                let ratio = convCount / total;
+
+                ans.push({
+                    year: currYear,
+                    proportion: ratio,
+                    property_type: currGroup,
+                })
+            }
+        }
+        return ans;
+    }
+
     //#endregion
 
     //#region Render Functions
+
+    _renderPoints() {
+        let vis = this;
+
+        
+    }
 
 
     //#endregion
