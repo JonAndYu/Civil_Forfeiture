@@ -1,6 +1,6 @@
 let violinPlot;
 let choroplethMap;
-let barChart;
+let lineChart;
 let slider;
 /**
  * Load data from CSV file asynchronously and visualize it
@@ -37,7 +37,7 @@ Promise.all([
         parentElement: '#map'
     }, data[0]);
 
-    violinPlot = new ViolinPlot({parentElement:'#violin-plot', legendElement: '#violin-legend-contents'}, data[1]);
+    lineChart = new LineChart({parentElement:'#line-plot', legendElement: '#legend-contents'}, data[1]);
     console.log(violinPlot);
     barChart = new BarChart({parentElement:'#bar-chart'}, data[1]);
 
@@ -48,10 +48,10 @@ Promise.all([
 
         // Filter data accordingly and update vis
         barChart.data = revData.filter(d => selectedCategory.localeCompare(d.STATE));
-        violinPlot.data = revData.filter(d => selectedCategory.localeCompare(d.STATE));
+        lineChart.data = revData.filter(d => selectedCategory.localeCompare(d.STATE));
 
         barChart.updateVis();
-        violinPlot.updateVis();
+        lineChart.updateVis();
     });
 
 }).catch(error => console.error(error));

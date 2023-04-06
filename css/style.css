@@ -48,14 +48,14 @@
     width: 600px;
 }
 
-/* Violin Plot Styling */
-#violin-area {
+/* Line Chart Styling */
+#line-area {
     height: 450px;
     width: auto;
     padding: 5px;
 }
 
-#violin-div {
+#line-div {
     justify-content: center;
     align-items: center;
     height: 400px;
@@ -64,7 +64,7 @@
     float: left;
 }
 
-#violin-container {
+#line-container {
     width: 25%;
     justify-content: center;
     align-items:center;
@@ -73,12 +73,12 @@
     margin: auto;
 }
 
-#violin-buttons {
+#control-buttons {
     margin: auto;
     text-align: center;
 }
 
-#violin-legend-contents {
+#legend-contents {
     height: 250px;
     z-index: 1;
 }
@@ -122,7 +122,7 @@
     transform: translateY(.125rem);
 }
 
-#violin-plot {
+#line-plot {
     height: 340px;
     width: 95%;
     fill: whitesmoke;
@@ -147,15 +147,6 @@
 
 .other {
     fill: #decbe4;
-}
-
-/* Histogram Marks */
-.violin-histogram {
-    fill: whitesmoke;
-}
-
-.year-hist-bins {
-    stroke:black;
 }
 
 /* Legend Styling */
