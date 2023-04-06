@@ -8,7 +8,6 @@ class LineChart {
             tooltipPadding: 10,
         };
         this.data = _data.filter(d => d["YEAR"] >= 1986 && d["REV"] >= 0);
-        this.org_data = JSON.parse(JSON.stringify(this.data));
         this.initVis();
     }
 
@@ -34,11 +33,13 @@ class LineChart {
         vis._filterSelect("#filter-others");
         vis._filterSelect("#filter-zeros");
 
-        vis.updateVis({isFiltered : false});
+        vis.updateVis();
     }
 
-    updateVis({isFiltered} = {isFiltered : false}) {
+    updateVis() {
         let vis = this;
+
+        vis.dataPoints = vis._createPointsData();
 
         vis._updateScales();
 
@@ -48,6 +49,7 @@ class LineChart {
     renderVis() {
         let vis = this;
 
+        vis._renderPoints();
     }
 
     //#region Initialization Functions
@@ -172,8 +174,7 @@ class LineChart {
      */
     _updateScales() {
         let vis = this;
-
-        vis.yScale.domain([0,1]);
+        vis.yScale.domain([d3.min(vis.dataPoints.map(d => d.ratio)) - 0.05,1]);
         vis.xScale.domain(d3.range(d3.min(vis.data.map(d => d.YEAR)), d3.max(vis.data.map(d => d.YEAR)) + 1));
 
         vis.xAxis.call(vis.xAxisB)
@@ -185,9 +186,77 @@ class LineChart {
         vis.yAxis.call(vis.yAxisL);
     }
 
+    /**
+     * [
+     *  { 
+     *      year: ####, 
+     *      proportion: Conv/nonConvic+conv+other, 
+     *      prop_type = "Other" | "Vehicles" | "Currency" | "Real-Property"
+     *  },
+     *  { 
+     *      year: ####, 
+     *      ratio: Conv/nonConvic+conv+other, 
+     *      prop_type = "Other" | "Vehicles" | "Currency" | "Real-Property"
+     *  },
+     *  ...
+     * ]
+     */
+    _createPointsData() {
+        let vis = this;
+        let ans = [];
+        let yearGroups = d3.groups(vis.data, d => d["YEAR"]);
+
+        for (let i in yearGroups) {
+            let currYear = yearGroups[i][0]
+            let yearArray = yearGroups[i][1]
+            let propGroups = d3.groups(yearArray, d => d["PROP_TYPE"]);
+            for (let j in propGroups) {
+                let currGroup = propGroups[j][0]
+                let dataArray = propGroups[j][1]
+
+                let convCount = dataArray.reduce((acc, currentValue) => currentValue["CONV_TYPE"] === "Conviction" ? acc + 1 : acc, 0);
+                let nonConvicCount = dataArray.reduce((acc, currentValue) => currentValue["CONV_TYPE"] === "No Conviction" ? acc + 1 : acc, 0)
+                let total = (convCount + nonConvicCount);
+                if (total === 0) break;
+                let ratio = convCount / total;
+
+                ans.push({
+                    year: currYear,
+                    ratio: ratio,
+                    property_type: currGroup,
+                })
+            }
+        }
+        return ans;
+    }
+
     //#endregion
 
     //#region Render Functions
+
+    _renderPoints() {
+        let vis = this;
+
+        vis.chart.selectAll('.points')
+            .data(vis.dataPoints)
+            .join('circle')
+            .classed('points', true)
+            .attr('r', 6)
+			.attr('cy', d => this.yScale(d["ratio"]))
+			.attr('cx', d => this.xScale(d["year"]) + 0.5 * vis.xScale.bandwidth())
+            .attr('class', d => {
+                switch(d['property_type']) {
+                    case 'Currency':
+                        return 'currency'
+                    case 'Vehicles':
+                        return 'vehicles'
+                    case 'Real Property':
+                        return 'real-property'
+                    default: // Other
+                        return 'other'
+                }
+            });
+    }
 
 
     //#endregion
