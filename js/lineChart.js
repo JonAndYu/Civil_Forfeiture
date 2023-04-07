@@ -39,7 +39,22 @@ class LineChart {
     updateVis() {
         let vis = this;
 
-        vis.dataPoints = vis._createPointsData();
+        // Sorts the data by property type then year.
+        vis.dataPoints = vis._createPointsData()
+            .sort((a, b) => {
+                return a['property_type'] === b['property_type'] ? 
+                    a['year'] - b['year'] :
+                    a['property_type'].localeCompare(b['property_type']);
+            });
+
+        vis.lineData = vis._createLineData();
+        
+        vis.xValue = d => d['year'];
+        vis.yValue = d => d['ratio'];
+
+        vis.line = d3.line()
+            .x(d => vis.xScale(vis.xValue(d)))
+            .y(d => vis.yScale(vis.yValue(d)));
 
         vis._updateScales();
 
@@ -50,6 +65,7 @@ class LineChart {
         let vis = this;
 
         vis._renderPoints();
+        vis._renderLines();
     }
 
     //#region Initialization Functions
@@ -168,7 +184,6 @@ class LineChart {
 
     //#region Update Functions
 
-
     /**
      * UpdateVis helper function that modifies the scales.
      */
@@ -211,11 +226,11 @@ class LineChart {
             let yearArray = yearGroups[i][1]
             let propGroups = d3.groups(yearArray, d => d["PROP_TYPE"]);
             for (let j in propGroups) {
-                let currGroup = propGroups[j][0]
-                let dataArray = propGroups[j][1]
+                let currGroup = propGroups[j][0];
+                let dataArray = propGroups[j][1];
 
                 let convCount = dataArray.reduce((acc, currentValue) => currentValue["CONV_TYPE"] === "Conviction" ? acc + 1 : acc, 0);
-                let nonConvicCount = dataArray.reduce((acc, currentValue) => currentValue["CONV_TYPE"] === "No Conviction" ? acc + 1 : acc, 0)
+                let nonConvicCount = dataArray.reduce((acc, currentValue) => currentValue["CONV_TYPE"] === "No Conviction" ? acc + 1 : acc, 0);
                 let total = (convCount + nonConvicCount);
                 if (total === 0) break;
                 let ratio = convCount / total;
@@ -224,8 +239,57 @@ class LineChart {
                     year: currYear,
                     ratio: ratio,
                     property_type: currGroup,
-                })
+                });
             }
+        }
+        return ans;
+    }
+
+    /**
+     * [
+     *  { 
+     *      year1: 
+     *      ratio1: 
+     *      year2: 
+     *      ratio2:
+     *  },
+     * ]
+     */
+    _createLineData() {
+        let vis = this;
+        let ans = [];
+
+        for (let i = 0; i < vis.dataPoints.length - 1; i++) {
+            let firstDatapoint = vis.dataPoints[i];
+            let secondDatapoint = vis.dataPoints[i+1];
+
+            // They are not of the same property_type
+            if (secondDatapoint['property_type'] !== firstDatapoint['property_type']) { 
+                continue;
+            }
+            let prop_type = secondDatapoint['property_type'];
+
+            // They are not consecuative
+            if (secondDatapoint['year'] - firstDatapoint['year'] !== 1) {
+                console.log(secondDatapoint);
+                console.log(firstDatapoint);
+                ans.push({
+                    year1: firstDatapoint["year"],
+                    ratio1: firstDatapoint["ratio"],
+                    year2: firstDatapoint["year"],
+                    ratio2: firstDatapoint["ratio"],
+                    property_type: prop_type,
+                });
+                continue;
+            }
+
+            ans.push({
+                year1: firstDatapoint["year"],
+                ratio1: firstDatapoint["ratio"],
+                year2: secondDatapoint["year"],
+                ratio2: secondDatapoint["ratio"],
+                property_type: prop_type,
+            });
         }
         return ans;
     }
@@ -256,6 +320,12 @@ class LineChart {
                         return 'other'
                 }
             });
+    }
+
+    _renderLines() {
+        let vis = this;
+
+        vis.chart.selectAll
     }
 
 
