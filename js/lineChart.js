@@ -56,6 +56,8 @@ class LineChart {
             .x(d => vis.xScale(vis.xValue(d)))
             .y(d => vis.yScale(vis.yValue(d)));
 
+        vis.lineData = vis._nestDataPoint();
+
         vis._updateScales();
 
         vis.renderVis();
@@ -245,6 +247,25 @@ class LineChart {
         return ans;
     }
 
+
+    _nestDataPoint() {
+        let vis = this;
+        const result = vis.dataPoints.reduce((accumulator, currentValue) => {
+            const index = accumulator.findIndex(item => item.property_type === currentValue.property_type);
+            if (index === -1) {
+              accumulator.push({
+                property_type: currentValue.property_type,
+                values: [{year: currentValue.year, ratio: currentValue.ratio}]
+              });
+            } else {
+              accumulator[index].values.push({year: currentValue.year, ratio: currentValue.ratio});
+            }
+            return accumulator;
+          }, []);
+
+        return result;
+    }
+
     /**
      * [
      *  { 
@@ -271,8 +292,6 @@ class LineChart {
 
             // They are not consecuative
             if (secondDatapoint['year'] - firstDatapoint['year'] !== 1) {
-                console.log(secondDatapoint);
-                console.log(firstDatapoint);
                 ans.push({
                     year1: firstDatapoint["year"],
                     ratio1: firstDatapoint["ratio"],
@@ -325,7 +344,10 @@ class LineChart {
     _renderLines() {
         let vis = this;
 
-        vis.chart.selectAll
+        vis.chart.selectAll('.chart-line')
+            .data(vis.lineData)
+            .join('path')
+
     }
 
 
