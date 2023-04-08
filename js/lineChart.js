@@ -345,8 +345,15 @@ class LineChart {
         let vis = this;
 
         vis.chart.selectAll('.chart-line')
-            .data(vis.lineData)
+            .data(vis.lineData, d => [d.property_type])
+            .join('g')
+            .classed('chart-line', true)
+            .selectAll('.line')
+            .data(d => d.values)
             .join('path')
+            .classed('line', true)
+            .attr('d', vis.line);
+
 
     }
 

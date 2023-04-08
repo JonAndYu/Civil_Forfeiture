@@ -38,7 +38,6 @@ Promise.all([
     }, data[0]);
 
     lineChart = new LineChart({parentElement:'#line-plot', legendElement: '#legend-contents'}, data[1]);
-    console.log(violinPlot);
     barChart = new BarChart({parentElement:'#bar-chart'}, data[1]);
 
 
