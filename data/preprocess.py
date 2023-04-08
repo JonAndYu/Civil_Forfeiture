@@ -1,3 +1,4 @@
+from __future__ import division
 import numpy as np
 import pandas as pd
 
@@ -30,6 +31,39 @@ def main():
 
     print(revenue[categories].nunique())
     print(revenue.columns)
+
+    # NEW PROCESSING
+
+    # Global Ration of convicted and known (used in states where we have no known values)
+    conv_count = (revenue["CONV_TYPE"].values == 'Conviction').sum()
+    non_unknown_count = (revenue["CONV_TYPE"].values != 'Unknown').sum()
+    conv_known_ratio = conv_count / non_unknown_count
+
+    # Determine the number conv needed for each state
+    state_dict = {}
+    states = revenue["STATE"].unique()
+
+    for state in states:
+        state_dict[state] = 0
+        unknown_state = ((revenue["CONV_TYPE"].values == 'Unknown') & (revenue["STATE"].values == state)).sum()
+        conv_state = ((revenue["CONV_TYPE"].values == 'Conviction') & (revenue["STATE"].values == state)).sum()
+        known_state = ((revenue["CONV_TYPE"].values != 'Unknown') & (revenue["STATE"].values == state)).sum()
+        if (known_state == 0):
+            state_dict[state] = (int) (unknown_state * conv_known_ratio)
+        else:
+            state_dict[state] = (int) (unknown_state * (conv_state / known_state))
+
+    print(state_dict)
+
+    # Modify Dataframe
+    for index, row in revenue.iterrows():
+        print(index)
+        if row["CONV_TYPE"] == 'Unknown':
+            if state_dict[row["STATE"]] > 0:
+                revenue.loc[index, "CONV_TYPE"] = 'Conviction'
+                state_dict[row["STATE"]] -= 1
+            else:
+                revenue.loc[index, "CONV_TYPE"] = 'No Conviction'
 
     revenue.to_csv("processed_revenue.csv", index=False)
 
