@@ -56,7 +56,7 @@ class LineChart {
             .x(d => vis.xScale(vis.xValue(d)))
             .y(d => vis.yScale(vis.yValue(d)));
 
-        vis.lineData = vis._nestDataPoint();
+        // vis.lineData = vis._nestDataPoint();
 
         vis._updateScales();
 
@@ -344,15 +344,37 @@ class LineChart {
     _renderLines() {
         let vis = this;
 
+        // vis.chart.selectAll('.chart-line')
+        //     .data(vis.lineData, d => [d.property_type])
+        //     .join('g')
+        //     .classed('chart-line', true)
+        //     .selectAll('.line')
+        //     .data(d => {return [d.values]})
+        //     .join('path')
+        //     .classed('line', true)
+        //     .attr('d', d => {console.log(d); return vis.line(d)});
+
         vis.chart.selectAll('.chart-line')
-            .data(vis.lineData, d => [d.property_type])
-            .join('g')
+            .data(vis.lineData)
+            .join('line')
             .classed('chart-line', true)
-            .selectAll('.line')
-            .data(d => d.values)
-            .join('path')
-            .classed('line', true)
-            .attr('d', vis.line);
+            .attr('x1', d => {return vis.xScale(d['year1']) + 0.5 * vis.xScale.bandwidth()})
+            .attr('x2', d => {return vis.xScale(d['year2']) + 0.5 * vis.xScale.bandwidth()})
+            .attr('y1', d => {return vis.yScale(d['ratio1'])})
+            .attr('y2', d => {return vis.yScale(d['ratio2'])})
+            .attr('class', d => {
+                console.log(d);
+                switch(d['property_type']) {
+                    case 'Currency':
+                        return 'currency'
+                    case 'Vehicles':
+                        return 'vehicles'
+                    case 'Real Property':
+                        return 'real-property'
+                    default: // Other
+                        return 'other'
+                }
+            });
 
 
     }
