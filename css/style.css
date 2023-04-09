@@ -134,19 +134,28 @@
     opacity: 0.05;
 }
 
+.chart-line {
+    fill: none;
+    stroke-width: 5px;
+  }
+
 .vehicles {
     fill: #fbb4ae;
+    stroke: #fbb4ae;
 }
 .currency {
     fill: #ccebc5;
+    stroke: #ccebc5;
 }
 
 .real-property {
     fill: #b3cde3;
+    stroke: #b3cde3;
 }
 
 .other {
     fill: #decbe4;
+    stroke: #decbe4;
 }
 
 /* Legend Styling */
