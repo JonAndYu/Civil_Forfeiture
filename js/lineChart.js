@@ -7,7 +7,7 @@ class LineChart {
             margin: { top: 30, bottom: 50, right: 20, left: 100},
             tooltipPadding: 10,
         };
-        this.data = _data.filter(d => d["YEAR"] >= 1986 && d["REV"] >= 0);
+        this.data = _data.filter(d => d["YEAR"] >= 1986);
         this.initVis();
     }
 
@@ -48,6 +48,8 @@ class LineChart {
             });
 
         vis.lineData = vis._createLineData();
+
+        console.log(vis.data);
         
         vis.xValue = d => d['year'];
         vis.yValue = d => d['ratio'];
@@ -196,6 +198,7 @@ class LineChart {
     _updateScales() {
         let vis = this;
         vis.yScale.domain([d3.min(vis.dataPoints.map(d => d.ratio)) - 0.05,1]);
+        console.log(d3.extent(vis.data.map(d => d.YEAR)));
         vis.xScale.domain(d3.extent(vis.data.map(d => d.YEAR)));
 
         console.log(d3.extent(vis.data.map(d => d.YEAR)));

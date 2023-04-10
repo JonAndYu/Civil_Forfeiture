@@ -64,7 +64,7 @@ class BarChart {
             .text('Revenue in US Dollars');
 
         // color palette for different conviction types
-        vis.colors = ['#e41a1c','#fffff1','#377eb8'];
+        vis.colors = ['#e41a1c','black','#377eb8'];
 
         // append legends
         vis.legend = vis.chart.append("g")
