@@ -97,9 +97,8 @@ class LineChart {
         vis.yScale = d3.scaleLinear()
             .range([vis.config.height, 0]);
 
-        vis.xScale = d3.scaleBand()
-        .range([ 0, vis.config.width ])
-        .padding(0.05)
+        vis.xScale = d3.scaleLinear()
+            .range([ 0, vis.config.width ]);
 
 
         vis.xAxis = vis.chartArea.append('g')
@@ -109,8 +108,13 @@ class LineChart {
         vis.yAxisL = d3.axisLeft(vis.yScale);
         vis.yAxis = vis.chartArea.append('g')
             .attr('class', 'axis y-axis');
+        
+        // Helper function that inclusively returns a range of values between start and end.
+        const getRange = (start, end) => [...Array.from({ length: end - start + 1 }, (_, i) => start + i)];
 
-        vis.xAxisB = d3.axisBottom(vis.xScale); 
+        vis.xAxisB = d3.axisBottom(vis.xScale)
+            .tickFormat(d3.format("d"))
+            .tickValues(getRange(d3.min(vis.data.map(d=>d.YEAR)), d3.max(vis.data.map(d=>d.YEAR)))); 
     }
 
     /**
@@ -192,8 +196,9 @@ class LineChart {
     _updateScales() {
         let vis = this;
         vis.yScale.domain([d3.min(vis.dataPoints.map(d => d.ratio)) - 0.05,1]);
-        vis.xScale.domain(d3.range(d3.min(vis.data.map(d => d.YEAR)), d3.max(vis.data.map(d => d.YEAR)) + 1));
+        vis.xScale.domain(d3.extent(vis.data.map(d => d.YEAR)));
 
+        console.log(d3.extent(vis.data.map(d => d.YEAR)));
         vis.xAxis.call(vis.xAxisB)
             .selectAll("text")  
             .style("text-anchor", "end")
@@ -326,7 +331,7 @@ class LineChart {
             .classed('points', true)
             .attr('r', 6)
 			.attr('cy', d => this.yScale(d["ratio"]))
-			.attr('cx', d => this.xScale(d["year"]) + 0.5 * vis.xScale.bandwidth())
+			.attr('cx', d => this.xScale(d["year"]))
             .attr('class', d => {
                 switch(d['property_type']) {
                     case 'Currency':
@@ -358,12 +363,11 @@ class LineChart {
             .data(vis.lineData)
             .join('line')
             .classed('chart-line', true)
-            .attr('x1', d => {return vis.xScale(d['year1']) + 0.5 * vis.xScale.bandwidth()})
-            .attr('x2', d => {return vis.xScale(d['year2']) + 0.5 * vis.xScale.bandwidth()})
+            .attr('x1', d => {return vis.xScale(d['year1'])})
+            .attr('x2', d => {return vis.xScale(d['year2'])})
             .attr('y1', d => {return vis.yScale(d['ratio1'])})
             .attr('y2', d => {return vis.yScale(d['ratio2'])})
             .attr('class', d => {
-                console.log(d);
                 switch(d['property_type']) {
                     case 'Currency':
                         return 'currency'
