@@ -45,9 +45,13 @@ Promise.all([
 
         let selectedCategory = d3.select(this).attr('name');
 
-        // Filter data accordingly and update vis
-        barChart.data = revData.filter(d => selectedCategory.localeCompare(d.STATE));
-        lineChart.data = revData.filter(d => selectedCategory.localeCompare(d.STATE));
+        console.log(selectedCategory);
+
+        // Filter data accordingly and update
+
+         
+        barChart.data = revData.filter(d => d.STATE === selectedCategory);
+        lineChart.data = revData.filter(d => d.STATE === selectedCategory && d["YEAR"] >= 1986);
 
         barChart.updateVis();
         lineChart.updateVis();
