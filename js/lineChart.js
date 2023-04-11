@@ -106,6 +106,9 @@ class LineChart {
             .attr('class', 'axis x-axis')
             .attr('transform', `translate(0, ${vis.config.height})`);
 
+        vis.radiusScale = d3.scaleSqrt()
+			.range([3, 9]);
+
         vis.yAxisL = d3.axisLeft(vis.yScale);
         vis.yAxis = vis.chartArea.append('g')
             .attr('class', 'axis y-axis');
@@ -199,6 +202,8 @@ class LineChart {
         vis.yScale.domain([d3.min(vis.dataPoints.map(d => d.ratio)) - 0.05,1]);
         vis.xScale.domain(d3.extent(vis.dataPoints.map(d => d['year'])));
         vis.xAxisB.tickValues(getRange(d3.min(vis.dataPoints.map(d => d['year'])), d3.max(vis.dataPoints.map(d => d['year']))));
+        //console.log(d3.extent(vis.dataPoints.map(d => d.convValues.length + d.nonConvValues.length)));
+        vis.radiusScale.domain(d3.extent(vis.dataPoints.map(d => d.convValues.length + d.nonConvValues.length)))
 
         vis.xAxis.transition()
             .duration(1000)
@@ -336,7 +341,7 @@ class LineChart {
         vis.chart.selectAll('.points')
             .data(vis.dataPoints)
         .join('circle')
-            .attr('r', 6)
+            .attr('r', d => this.radiusScale(d.convValues.length + d.nonConvValues.length))
 			.attr('cy', d => this.yScale(d["ratio"]))
 			.attr('cx', d => this.xScale(d["year"]))
             .attr('class', d => {
