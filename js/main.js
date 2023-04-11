@@ -38,7 +38,7 @@ Promise.all([
     }, data[0]);
 
     lineChart = new LineChart({parentElement:'#line-plot', legendElement: '#legend-contents'}, data[1]);
-    barChart = new BarChart({parentElement:'#bar-chart'}, data[1]);
+    barChart = new BarChart({parentElement:'#bar-chart', legendElement: '#bar-chart-legend-contents'}, data[1]);
 
 
     d3.selectAll('.state').on('click', function() {
