@@ -55,4 +55,6 @@ Promise.all([
         lineChart.updateVis();
     });
 
+    d3.selectAll('.bar')
+
 }).catch(error => console.error(error));

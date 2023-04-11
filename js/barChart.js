@@ -163,7 +163,16 @@ class BarChart {
             })
             .attr("width", vis.xScale.bandwidth());
 
+            d3.selectAll('.rect')
+                .on('click', function(event, e) {
+                    const element = d3.select(this);
+                    const markType = e["data"]["PROP_TYPE"];
+                    const isActive = element.classed("selected");
 
+                    d3.selectAll(".rect")
+                        .filter(d => d["data"]["PROP_TYPE"] === markType)
+                        .classed("selected", !isActive);
+                });
 
         vis.xAxisG.call(vis.xAxis);
 

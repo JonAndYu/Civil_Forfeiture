@@ -357,13 +357,15 @@ class LineChart {
 				d3.select('#tooltip')
 				  .style('opacity', 1)
 				//   .html(`
+                //     <div<
 				//   		<div> Year : ${e.year} </div>
                 //         <div> Property Type : ${e.property_type}
-				//   		<div> Ratio$ : ${e.ratio} </div>
+				//   	 	<div> Ratio$ : ${e.ratio} </div>
                 //         <div> Conviction Count: ${e.convValues.length} </div>
                 //         <div> Non Conviction Count: ${e.nonConvValues.length} </div>
+                //     </div>
 				//  	`);
-                .html(`<div> year </div>`);
+                .html(`<div>year </div>`);
 			})
             .on('mousemove', function (event, _) {
 				d3.select('#tooltip')

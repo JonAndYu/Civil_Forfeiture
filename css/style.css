@@ -194,3 +194,17 @@ legend {
     position:  relative;
     top:  -.4em;
 }
+
+.rect {
+    opacity: 0.5;
+    transition: opacity 0.5s ease;
+}
+
+.rect.selected {
+    opacity: 1;
+}
+
+/* .rect.selected {
+    stroke-width: 3;
+    stroke:#ffc000;
+} */
