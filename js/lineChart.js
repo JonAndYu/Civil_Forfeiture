@@ -253,6 +253,8 @@ class LineChart {
                     year: currYear,
                     ratio: ratio,
                     property_type: currGroup,
+                    convValues: dataArray.filter(d => d["CONV_TYPE"] === "Conviction"),
+                    nonConvValues: dataArray.filter(d => d["CONV_TYPE"] === "No Conviction")
                 });
             }
         }
@@ -349,7 +351,28 @@ class LineChart {
                         return 'other'
                 }
             })
-            .classed('points', true);
+            .classed('points', true)
+            .on("mouseover", function(event, e) {
+                console.log(e);
+				d3.select('#tooltip')
+				  .style('opacity', 1)
+				//   .html(`
+				//   		<div> Year : ${e.year} </div>
+                //         <div> Property Type : ${e.property_type}
+				//   		<div> Ratio$ : ${e.ratio} </div>
+                //         <div> Conviction Count: ${e.convValues.length} </div>
+                //         <div> Non Conviction Count: ${e.nonConvValues.length} </div>
+				//  	`);
+                .html(`<div> year </div>`);
+			})
+            .on('mousemove', function (event, _) {
+				d3.select('#tooltip')
+				  	.style('left', `${event.pageX + vis.config.tooltipPadding}px`)   
+				  	.style('top', `${event.pageY + vis.config.tooltipPadding}px`)
+			})
+			.on('mouseleave', () => {
+				d3.select('#tooltip').style('opacity', 0);
+			});
     }
 
     _renderLines() {
