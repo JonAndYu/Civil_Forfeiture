@@ -1,5 +1,5 @@
 class BarChart {
-    constructor(_config, _data) {
+    constructor(_config, _data, _dispatcher) {
         this.config = {
             parentElement: _config.parentElement,
             legendElement: _config.legendElement,
@@ -9,6 +9,7 @@ class BarChart {
         };
         this.data = _data;
         this.initVis();
+        this.dispatcher = _dispatcher;
     }
 
     initVis() {

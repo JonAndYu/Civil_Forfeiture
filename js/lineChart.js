@@ -1,6 +1,6 @@
 class LineChart {
 
-    constructor(_config, _data) {
+    constructor(_config, _data, _dispatcher) {
         this.config = {
             parentElement: _config.parentElement,
             legendElement: _config.legendElement,
@@ -10,6 +10,7 @@ class LineChart {
 
         this.data = _data.filter(d => d["YEAR"] >= 1986);
         this.initVis();
+        this.dispatcher = _dispatcher;
     }
 
     initVis() {
