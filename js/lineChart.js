@@ -7,6 +7,7 @@ class LineChart {
             margin: { top: 30, bottom: 50, right: 20, left: 100},
             tooltipPadding: 10,
         };
+
         this.data = _data.filter(d => d["YEAR"] >= 1986);
         this.initVis();
     }
@@ -48,8 +49,6 @@ class LineChart {
             });
 
         vis.lineData = vis._createLineData();
-
-        console.log(vis.data);
         
         vis.xValue = d => d['year'];
         vis.yValue = d => d['ratio'];
@@ -110,13 +109,9 @@ class LineChart {
         vis.yAxisL = d3.axisLeft(vis.yScale);
         vis.yAxis = vis.chartArea.append('g')
             .attr('class', 'axis y-axis');
-        
-        // Helper function that inclusively returns a range of values between start and end.
-        const getRange = (start, end) => [...Array.from({ length: end - start + 1 }, (_, i) => start + i)];
 
         vis.xAxisB = d3.axisBottom(vis.xScale)
-            .tickFormat(d3.format("d"))
-            .tickValues(getRange(d3.min(vis.data.map(d=>d.YEAR)), d3.max(vis.data.map(d=>d.YEAR)))); 
+            .tickFormat(d3.format("d")); 
     }
 
     /**
@@ -197,18 +192,27 @@ class LineChart {
      */
     _updateScales() {
         let vis = this;
-        vis.yScale.domain([d3.min(vis.dataPoints.map(d => d.ratio)) - 0.05,1]);
-        console.log(d3.extent(vis.data.map(d => d.YEAR)));
-        vis.xScale.domain(d3.extent(vis.data.map(d => d.YEAR)));
 
-        console.log(d3.extent(vis.data.map(d => d.YEAR)));
-        vis.xAxis.call(vis.xAxisB)
+        // Helper function that inclusively returns a range of values between start and end.
+        const getRange = (start, end) => [...Array.from({ length: end - start + 1 }, (_, i) => start + i)];
+
+        vis.yScale.domain([d3.min(vis.dataPoints.map(d => d.ratio)) - 0.05,1]);
+        vis.xScale.domain(d3.extent(vis.dataPoints.map(d => d['year'])));
+        vis.xAxisB.tickValues(getRange(d3.min(vis.dataPoints.map(d => d['year'])), d3.max(vis.dataPoints.map(d => d['year']))));
+
+        vis.xAxis.transition()
+            .duration(1000)
+            .call(vis.xAxisB)
             .selectAll("text")  
             .style("text-anchor", "end")
             .attr("dx", "-.8em")
             .attr("dy", ".15em")
             .attr("transform", "rotate(-65)");
-        vis.yAxis.call(vis.yAxisL);
+
+        vis.yAxis
+            .transition()
+            .duration(1000)
+            .call(vis.yAxisL);
     }
 
     /**
@@ -293,9 +297,8 @@ class LineChart {
             let secondDatapoint = vis.dataPoints[i+1];
 
             // They are not of the same property_type
-            if (secondDatapoint['property_type'] !== firstDatapoint['property_type']) { 
-                continue;
-            }
+            if (secondDatapoint['property_type'] !== firstDatapoint['property_type']) continue;
+
             let prop_type = secondDatapoint['property_type'];
 
             // They are not consecuative
@@ -330,8 +333,7 @@ class LineChart {
 
         vis.chart.selectAll('.points')
             .data(vis.dataPoints)
-            .join('circle')
-            .classed('points', true)
+        .join('circle')
             .attr('r', 6)
 			.attr('cy', d => this.yScale(d["ratio"]))
 			.attr('cx', d => this.xScale(d["year"]))
@@ -346,7 +348,8 @@ class LineChart {
                     default: // Other
                         return 'other'
                 }
-            });
+            })
+            .classed('points', true);
     }
 
     _renderLines() {
@@ -364,8 +367,7 @@ class LineChart {
 
         vis.chart.selectAll('.chart-line')
             .data(vis.lineData)
-            .join('line')
-            .classed('chart-line', true)
+        .join('line')
             .attr('x1', d => {return vis.xScale(d['year1'])})
             .attr('x2', d => {return vis.xScale(d['year2'])})
             .attr('y1', d => {return vis.yScale(d['ratio1'])})
@@ -381,9 +383,8 @@ class LineChart {
                     default: // Other
                         return 'other'
                 }
-            });
-
-
+            })
+            .classed('chart-line', true);
     }
 
 
@@ -430,11 +431,7 @@ class LineChart {
 
             element.classed("selected", !isActive);
             
-            // Checks which of the two buttons are selected.
-            // vis._updateScales();
-            // vis._computeHistogram();
-            // vis.renderVis();
-            vis.updateVis({isFiltered : true})
+            vis.updateVis()
         });
     }
 
