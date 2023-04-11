@@ -149,6 +149,9 @@ class BarChart {
             .classed('bars', true)
             .attr("fill", function(d, i) {
                 return vis.colors[i]; })
+            .style('stroke', function(d, i) {
+                return vis.colors[i]; })
+            .style('stroke-width', 1)
             .selectAll("rect")
             // enter a second time = loop subgroup per subgroup to add all rectangles
             .data(function(d) {return d; })
@@ -163,6 +166,7 @@ class BarChart {
             })
             .attr("width", vis.xScale.bandwidth());
 
+            // Add Event Listeners to marks
             d3.selectAll('.rect')
                 .on('click', function(event, e) {
                     const element = d3.select(this);
@@ -172,7 +176,15 @@ class BarChart {
                     d3.selectAll(".rect")
                         .filter(d => d["data"]["PROP_TYPE"] === markType)
                         .classed("selected", !isActive);
-                });
+                })
+                .on('mouseover', function(event, e) {
+                    const element = d3.select(this);
+                    element.style('stroke-width', 5);
+                })
+                .on('mouseleave', function(event, e) {
+                    const element = d3.select(this);
+                    element.style('stroke-width', null);
+                })
 
         vis.xAxisG.call(vis.xAxis);
 
