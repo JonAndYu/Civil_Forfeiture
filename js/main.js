@@ -45,8 +45,6 @@ Promise.all([
 
         let selectedCategory = d3.select(this).attr('name');
 
-        console.log(selectedCategory);
-
         // Filter data accordingly and update
 
          
