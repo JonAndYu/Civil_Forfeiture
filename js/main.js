@@ -1,4 +1,4 @@
-let violinPlot;
+let barChart;
 let choroplethMap;
 let lineChart;
 let slider;
@@ -41,18 +41,34 @@ Promise.all([
     lineChart = new LineChart({parentElement:'#line-plot', legendElement: '#legend-contents'}, data[1], dispatcher);
     barChart = new BarChart({parentElement:'#bar-chart', legendElement: '#bar-chart-legend-contents'}, data[1], dispatcher);
 
-    d3.selectAll('.state').on('click', function() {
+    let selectedCategory = "";
 
-        let selectedCategory = d3.select(this).attr('name');
-    
-        // Filter data accordingly and update
-    
-         
-        barChart.data = revData.filter(d => d.STATE === selectedCategory);
-        lineChart.data = revData.filter(d => d.STATE === selectedCategory && d["YEAR"] >= 1986);
-    
-        barChart.updateVis();
-        lineChart.updateVis();
+    d3.selectAll('.state').on('click', function() {
+        if (selectedCategory == d3.select(this).attr('name')) {
+
+            // Filter data accordingly and update
+            selectedCategory = "";
+
+            barChart.data = revData;
+            lineChart.data = revData;
+
+            barChart.updateVis();
+            lineChart.updateVis();
+
+            d3.select('#title').html(`<h1>Civil Asset Forfeiture</h1>`);
+        }
+        else {
+            selectedCategory = d3.select(this).attr('name');
+
+            // Filter data accordingly and update
+            barChart.data = revData.filter(d => d.STATE === selectedCategory);
+            lineChart.data = revData.filter(d => d.STATE === selectedCategory && d["YEAR"] >= 1986);
+
+            barChart.updateVis();
+            lineChart.updateVis();
+
+            d3.select('#title').html(`<h1>Civil Asset Forfeiture: ${selectedCategory}</h1>`);
+        }
     });
     
     dispatcher.on("hoverPropertyType", markType => {
