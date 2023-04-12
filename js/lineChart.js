@@ -80,6 +80,19 @@ class LineChart {
                     .filter(d => d["data"]["PROP_TYPE"] === vis._convertPropertyNameDisplay(propertyClass[0]))
                     .style('stroke-width', 5);
 
+                if (element.classed("points")) {
+                    d3.select('#tooltip')
+                    .style('display', 'block')
+                    .html(`
+                        <div
+                            <div class="tooltip-title"> ${vis._convertPropertyNameDisplay(e.property_type)} in ${e.year} </div>
+                            <div> Ratio : ${e.ratio} </div>
+                            <div> Conviction Count: ${e.convValues.length} </div>
+                            <div> Non Conviction Count: ${e.nonConvValues.length} </div>
+                        </div>
+                        `);
+                }
+
             })
             .on('mouseleave', function(event, e) {
                 const element = d3.select(this);
@@ -92,8 +105,18 @@ class LineChart {
                     .filter(d => d["data"]["PROP_TYPE"] === vis._convertPropertyNameDisplay(propertyClass[0]))
                     .style('stroke-width', null);
                 
-
+                if (element.classed("points")) {
+                    d3.select('#tooltip').style('display', 'none');
+                }
             });
+
+            d3.selectAll(".points")
+                .on('mousemove', function (event, _) {
+                    d3.select('#tooltip')
+                        .style('left', `${event.pageX + vis.config.tooltipPadding}px`)   
+                        .style('top', `${event.pageY + vis.config.tooltipPadding}px`)
+                });
+
 
     }
 
@@ -375,17 +398,16 @@ class LineChart {
             .on("mouseover", function(event, e) {
                 console.log(e);
 				d3.select('#tooltip')
-				  .style('opacity', 1)
-				//   .html(`
-                //     <div<
-				//   		<div> Year : ${e.year} </div>
-                //         <div> Property Type : ${e.property_type}
-				//   	 	<div> Ratio$ : ${e.ratio} </div>
-                //         <div> Conviction Count: ${e.convValues.length} </div>
-                //         <div> Non Conviction Count: ${e.nonConvValues.length} </div>
-                //     </div>
-				//  	`);
-                .html(`<div>year </div>`);
+                    .style('display', 'block')
+				  .html(`
+                    <div<
+				  		<div> Year : ${e.year} </div>
+                        <div> Property Type : ${e.property_type}
+				  	 	<div> Ratio$ : ${e.ratio} </div>
+                        <div> Conviction Count: ${e.convValues.length} </div>
+                        <div> Non Conviction Count: ${e.nonConvValues.length} </div>
+                    </div>
+				 	`);
 			})
             .on('mousemove', function (event, _) {
 				d3.select('#tooltip')
@@ -393,7 +415,7 @@ class LineChart {
 				  	.style('top', `${event.pageY + vis.config.tooltipPadding}px`)
 			})
 			.on('mouseleave', () => {
-				d3.select('#tooltip').style('opacity', 0);
+				d3.select('#tooltip').style('display', 'none');;
 			});
     }
 

@@ -145,7 +145,7 @@
 
 .points {
     opacity: 0.75;
-    z-index: 998;
+    z-index: 900;
 }
 
 .points.hover {
@@ -156,6 +156,7 @@
     fill: none;
     opacity: 0.75;
     stroke-width: 2px;
+    z-index: 899;
 }
 
 .chart-line.hover {
