@@ -1,5 +1,5 @@
 class BarChart {
-    constructor(_config, _data) {
+    constructor(_config, _data, _dispatcher) {
         this.config = {
             parentElement: _config.parentElement,
             legendElement: _config.legendElement,
@@ -9,6 +9,7 @@ class BarChart {
         };
         this.data = _data;
         this.initVis();
+        this.dispatcher = _dispatcher;
     }
 
     initVis() {
@@ -149,6 +150,9 @@ class BarChart {
             .classed('bars', true)
             .attr("fill", function(d, i) {
                 return vis.colors[i]; })
+            .style('stroke', function(d, i) {
+                return vis.colors[i]; })
+            .style('stroke-width', 1)
             .selectAll("rect")
             // enter a second time = loop subgroup per subgroup to add all rectangles
             .data(function(d) {return d; })
@@ -163,10 +167,79 @@ class BarChart {
             })
             .attr("width", vis.xScale.bandwidth());
 
+            // Add Event Listeners to marks
+            d3.selectAll('.rect')
+                .on('click', function(event, e) {
+                    const element = d3.select(this);
+                    const markType = e["data"]["PROP_TYPE"];
+                    const isActive = element.classed("selected");
 
+                    d3.selectAll(".rect")
+                        .filter(d => d["data"]["PROP_TYPE"] === markType)
+                        .classed("selected", !isActive);
+                })
+                .on('mouseover', function(event, e) {
+                    const markType = e["data"]["PROP_TYPE"];
+
+                    d3.selectAll('.rect')
+                        .filter(d => d["data"]["PROP_TYPE"] === markType)
+                        .style('stroke-width', 5);
+   
+                    d3.selectAll(".points, .chart-line")
+                        .filter(d => {return d["property_type"] === vis._convertPropertyNameClass(markType)})
+                        .classed("hover", true);
+                })
+                .on('mouseleave', function(event, e) {
+                    const markType = e["data"]["PROP_TYPE"];
+
+                    d3.selectAll('.rect')
+                        .filter(d => d["data"]["PROP_TYPE"] === markType)
+                        .style('stroke-width', null);
+
+                    d3.selectAll(".points, .chart-line")
+                        .filter(d => {
+                            return d["property_type"] === vis._convertPropertyNameClass(markType)})
+                        .classed("hover", false);
+                })
 
         vis.xAxisG.call(vis.xAxis);
 
         vis.yAxisG.call(vis.yAxis);
+    }
+
+    /**
+     * Converts class property name to display property name
+     */
+    _convertPropertyNameDisplay(val) {
+        switch(val) {
+            case 'currency':
+                return 'Currency';
+            case 'vehicles':
+                return 'Vehicles';
+            case 'real-property':
+                return 'Real Property';
+            case 'other':
+                return 'Other';
+            default:
+                return val;
+        }
+    }
+
+    /**
+     * Converts display property name to class property name
+     */
+    _convertPropertyNameClass(val) {
+        switch(val) {
+            case 'Currency':
+                return 'currency';
+            case 'Vehicles':
+                return 'vehicles';
+            case 'Real Property':
+                return 'real-property';
+            case 'Other':
+                return 'other';
+            default:
+                return val;
+        }
     }
 }

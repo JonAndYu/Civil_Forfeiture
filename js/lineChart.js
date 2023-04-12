@@ -1,6 +1,6 @@
 class LineChart {
 
-    constructor(_config, _data) {
+    constructor(_config, _data, _dispatcher) {
         this.config = {
             parentElement: _config.parentElement,
             legendElement: _config.legendElement,
@@ -10,6 +10,7 @@ class LineChart {
 
         this.data = _data.filter(d => d["YEAR"] >= 1986);
         this.initVis();
+        this.dispatcher = _dispatcher;
     }
 
     initVis() {
@@ -69,6 +70,35 @@ class LineChart {
 
         vis._renderPoints();
         vis._renderLines();
+
+        // Add event Listeners:
+        d3.selectAll(".points, .chart-line")
+            .on('mouseover', function(event, e) {
+                const element = d3.select(this);
+                const propertyClass = element.attr('class').split(" ").filter(i => i !== 'points' && i !== 'chart-line');
+
+                d3.selectAll(`.${propertyClass}`)
+                    .classed("hover", true)
+
+                d3.selectAll('.rect')
+                    .filter(d => d["data"]["PROP_TYPE"] === vis._convertPropertyNameDisplay(propertyClass[0]))
+                    .style('stroke-width', 5);
+
+            })
+            .on('mouseleave', function(event, e) {
+                const element = d3.select(this);
+                const propertyClass = element.attr('class').split(" ").filter(i => i !== 'points' && i !== 'chart-line');
+
+                d3.selectAll(`.${propertyClass[0]}`)
+                    .classed("hover", false);
+
+                d3.selectAll('.rect')
+                    .filter(d => d["data"]["PROP_TYPE"] === vis._convertPropertyNameDisplay(propertyClass[0]))
+                    .style('stroke-width', null);
+                
+
+            });
+
     }
 
     //#region Initialization Functions
@@ -257,7 +287,7 @@ class LineChart {
                 ans.push({
                     year: currYear,
                     ratio: ratio,
-                    property_type: currGroup,
+                    property_type: vis._convertPropertyName(currGroup),
                     convValues: dataArray.filter(d => d["CONV_TYPE"] === "Conviction"),
                     nonConvValues: dataArray.filter(d => d["CONV_TYPE"] === "No Conviction")
                 });
@@ -315,7 +345,7 @@ class LineChart {
                     ratio1: firstDatapoint["ratio"],
                     year2: firstDatapoint["year"],
                     ratio2: firstDatapoint["ratio"],
-                    property_type: prop_type,
+                    property_type: vis._convertPropertyName(prop_type),
                 });
                 continue;
             }
@@ -325,7 +355,7 @@ class LineChart {
                 ratio1: firstDatapoint["ratio"],
                 year2: secondDatapoint["year"],
                 ratio2: secondDatapoint["ratio"],
-                property_type: prop_type,
+                property_type: vis._convertPropertyName(prop_type),
             });
         }
         return ans;
@@ -344,31 +374,22 @@ class LineChart {
             .attr('r', d => this.radiusScale(d.convValues.length + d.nonConvValues.length))
 			.attr('cy', d => this.yScale(d["ratio"]))
 			.attr('cx', d => this.xScale(d["year"]))
-            .attr('class', d => {
-                switch(d['property_type']) {
-                    case 'Currency':
-                        return 'currency'
-                    case 'Vehicles':
-                        return 'vehicles'
-                    case 'Real Property':
-                        return 'real-property'
-                    default: // Other
-                        return 'other'
-                }
-            })
+            .attr('class', d => vis._convertPropertyName(d['property_type']))
             .classed('points', true)
             .on("mouseover", function(event, e) {
                 console.log(e);
 				d3.select('#tooltip')
 				  .style('opacity', 1)
 				//   .html(`
+                //     <div<
 				//   		<div> Year : ${e.year} </div>
                 //         <div> Property Type : ${e.property_type}
-				//   		<div> Ratio$ : ${e.ratio} </div>
+				//   	 	<div> Ratio$ : ${e.ratio} </div>
                 //         <div> Conviction Count: ${e.convValues.length} </div>
                 //         <div> Non Conviction Count: ${e.nonConvValues.length} </div>
+                //     </div>
 				//  	`);
-                .html(`<div> year </div>`);
+                .html(`<div>year </div>`);
 			})
             .on('mousemove', function (event, _) {
 				d3.select('#tooltip')
@@ -400,18 +421,7 @@ class LineChart {
             .attr('x2', d => {return vis.xScale(d['year2'])})
             .attr('y1', d => {return vis.yScale(d['ratio1'])})
             .attr('y2', d => {return vis.yScale(d['ratio2'])})
-            .attr('class', d => {
-                switch(d['property_type']) {
-                    case 'Currency':
-                        return 'currency'
-                    case 'Vehicles':
-                        return 'vehicles'
-                    case 'Real Property':
-                        return 'real-property'
-                    default: // Other
-                        return 'other'
-                }
-            })
+            .attr('class', d => vis._convertPropertyName(d['property_type']))
             .classed('chart-line', true);
     }
 
@@ -438,6 +448,42 @@ class LineChart {
      */
     _filterBetweenRangeOfYears(data, lowerBound, upperBound) {
         return data.filter(d => d.YEAR >= lowerBound && d.YEAR <= upperBound);
+    }
+
+    /**
+     * Converts display property name to class property name
+     */
+    _convertPropertyName(val) {
+        switch(val) {
+            case 'Currency':
+                return 'currency';
+            case 'Vehicles':
+                return 'vehicles';
+            case 'Real Property':
+                return 'real-property';
+            case 'Other':
+                return 'other';
+            default:
+                return val;
+        }
+    }
+
+    /**
+     * Converts class property name to display property name
+     */
+    _convertPropertyNameDisplay(val) {
+        switch(val) {
+            case 'currency':
+                return 'Currency';
+            case 'vehicles':
+                return 'Vehicles';
+            case 'real-property':
+                return 'Real Property';
+            case 'other':
+                return 'Other';
+            default:
+                return val;
+        }
     }
 
     //#endregion

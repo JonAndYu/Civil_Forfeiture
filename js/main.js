@@ -2,6 +2,7 @@ let violinPlot;
 let choroplethMap;
 let lineChart;
 let slider;
+const dispatcher = d3.dispatch('filterYear', 'filterCountry', 'filterPropertyType', 'hoverPropertyType');
 /**
  * Load data from CSV file asynchronously and visualize it
  */
@@ -31,28 +32,49 @@ Promise.all([
         }
     });
 
-    slider = new Slider({parentElement:'#slider'}, data[1]);
+    slider = new Slider({parentElement:'#slider'}, data[1], dispatcher);
 
     choroplethMap = new ChoroplethMap({
         parentElement: '#map'
-    }, data[0]);
+    }, data[0], dispatcher);
 
-    lineChart = new LineChart({parentElement:'#line-plot', legendElement: '#legend-contents'}, data[1]);
-    barChart = new BarChart({parentElement:'#bar-chart', legendElement: '#bar-chart-legend-contents'}, data[1]);
-
+    lineChart = new LineChart({parentElement:'#line-plot', legendElement: '#legend-contents'}, data[1], dispatcher);
+    barChart = new BarChart({parentElement:'#bar-chart', legendElement: '#bar-chart-legend-contents'}, data[1], dispatcher);
 
     d3.selectAll('.state').on('click', function() {
 
         let selectedCategory = d3.select(this).attr('name');
-
+    
         // Filter data accordingly and update
-
+    
          
         barChart.data = revData.filter(d => d.STATE === selectedCategory);
         lineChart.data = revData.filter(d => d.STATE === selectedCategory && d["YEAR"] >= 1986);
+    
+        barChart.updateVis();
+        lineChart.updateVis();
+    });
+    
+    dispatcher.on("hoverPropertyType", markType => {
+        console.log(markType);
+        // Modify the markType
 
+        // If this is true that means the dispatcher was called inside of lineChart, modify barchart
+        // by hover
+        if (Array.isArray(markType)) {
+            
+        } else { // Modify linechart
+
+        }
+    });
+    
+    dispatcher.on("filterPropertyType", countryData => {
+        barChart.data = countryData;
+        lineChart.data = coutnryData;
+    
         barChart.updateVis();
         lineChart.updateVis();
     });
 
 }).catch(error => console.error(error));
+

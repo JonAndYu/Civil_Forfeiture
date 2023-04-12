@@ -1,6 +1,6 @@
 class Slider {
 
-    constructor(_config, _data) {
+    constructor(_config, _data, _dispatcher) {
         this.config = {
             parentElement: _config.parentElement,
             containerWidth: _config.containerWidth || 600,
@@ -9,6 +9,7 @@ class Slider {
         }
         this.data = _data;
         this.initVis();
+        this.dispatcher = _dispatcher;
     }
 
     initVis() {
