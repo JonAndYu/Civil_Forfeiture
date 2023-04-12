@@ -17,7 +17,7 @@ Promise.all([
     revData.forEach(d => {
         d.YEAR = +d.YEAR;
         d.REV = +d.REV;
-    })
+    });
 
     geoData.objects.states.geometries.forEach(d => {
         d.properties.data_density = 0;

@@ -27,7 +27,10 @@ def main():
 
     revenue["REV"] = revenue["REV"].fillna(0)
 
+    # Checks for either zero or na year values. The number of zeros are insignificant enough for us to simply drop.
+    # With approximately 46k instances of np.nan we decided to randomly impute them with a value between 2001 and 2010
     revenue = revenue.drop(revenue[(revenue['YEAR'] == 0)].index)
+    revenue.loc[revenue["YEAR"].isna(), "YEAR"] = np.random.randint(2001, 2020, size=len(revenue[revenue['YEAR'].isna()]['YEAR']))
 
     print(revenue[categories].nunique())
     print(revenue.columns)

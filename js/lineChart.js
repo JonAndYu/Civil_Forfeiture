@@ -8,7 +8,7 @@ class LineChart {
             tooltipPadding: 10,
         };
 
-        this.data = _data.filter(d => d["YEAR"] >= 1986);
+        this.data = _data;
         this.initVis();
         this.dispatcher = _dispatcher;
     }
