@@ -46,15 +46,6 @@ class LineChart {
             });
 
         vis.lineData = vis._createLineData();
-        
-        vis.xValue = d => d['year'];
-        vis.yValue = d => d['ratio'];
-
-        vis.line = d3.line()
-            .x(d => vis.xScale(vis.xValue(d)))
-            .y(d => vis.yScale(vis.yValue(d)));
-
-        // vis.lineData = vis._nestDataPoint();
 
         vis._updateScales();
 
@@ -67,56 +58,7 @@ class LineChart {
         vis._renderPoints();
         vis._renderLines();
 
-        // Add event Listeners:
-        d3.selectAll(".points, .chart-line")
-            .on('mouseover', function(event, e) {
-                const element = d3.select(this);
-                const propertyClass = element.attr('class').split(" ").filter(i => i !== 'points' && i !== 'chart-line');
-
-                d3.selectAll(`.${propertyClass}`)
-                    .classed("hover", true)
-
-                d3.selectAll('.rect')
-                    .filter(d => d["data"]["PROP_TYPE"] === vis._convertPropertyNameDisplay(propertyClass[0]))
-                    .style('stroke-width', 5);
-
-                if (element.classed("points")) {
-                    d3.select('#tooltip')
-                    .style('display', 'block')
-                    .html(`
-                        <div
-                            <div class="tooltip-title"> ${vis._convertPropertyNameDisplay(e.property_type)} in ${e.year} </div>
-                            <div> Ratio : ${e.ratio} </div>
-                            <div> Conviction Count: ${e.convValues.length} </div>
-                            <div> Non Conviction Count: ${e.nonConvValues.length} </div>
-                        </div>
-                        `);
-                }
-
-            })
-            .on('mouseleave', function(event, e) {
-                const element = d3.select(this);
-                const propertyClass = element.attr('class').split(" ").filter(i => i !== 'points' && i !== 'chart-line');
-
-                d3.selectAll(`.${propertyClass[0]}`)
-                    .classed("hover", false);
-
-                d3.selectAll('.rect')
-                    .filter(d => d["data"]["PROP_TYPE"] === vis._convertPropertyNameDisplay(propertyClass[0]))
-                    .style('stroke-width', null);
-                
-                if (element.classed("points")) {
-                    d3.select('#tooltip').style('display', 'none');
-                }
-            });
-
-            d3.selectAll(".points")
-                .on('mousemove', function (event, _) {
-                    d3.select('#tooltip')
-                        .style('left', `${event.pageX + vis.config.tooltipPadding}px`)   
-                        .style('top', `${event.pageY + vis.config.tooltipPadding}px`)
-                });
-
+        vis._addEventListeners();
 
     }
 
@@ -249,9 +191,11 @@ class LineChart {
         const getRange = (start, end) => [...Array.from({ length: end - start + 1 }, (_, i) => start + i)];
 
         vis.yScale.domain([d3.min(vis.dataPoints.map(d => d.ratio)) - 0.05,1]);
+
         vis.xScale.domain(d3.extent(vis.dataPoints.map(d => d['year'])));
         vis.xAxisB.tickValues(getRange(d3.min(vis.dataPoints.map(d => d['year'])), d3.max(vis.dataPoints.map(d => d['year']))));
-        //console.log(d3.extent(vis.dataPoints.map(d => d.convValues.length + d.nonConvValues.length)));
+
+        // Scale used to size encode a given vis.datapoint
         vis.radiusScale.domain(d3.extent(vis.dataPoints.map(d => d.convValues.length + d.nonConvValues.length)))
 
         vis.xAxis.transition()
@@ -270,19 +214,17 @@ class LineChart {
     }
 
     /**
-     * [
-     *  { 
-     *      year: ####, 
-     *      proportion: Conv/nonConvic+conv+other, 
-     *      prop_type = "Other" | "Vehicles" | "Currency" | "Real-Property"
-     *  },
-     *  { 
-     *      year: ####, 
-     *      ratio: Conv/nonConvic+conv+other, 
-     *      prop_type = "Other" | "Vehicles" | "Currency" | "Real-Property"
-     *  },
-     *  ...
-     * ]
+     * Groups the current vis.data by year and property type and creates a count
+     * of conviction and non conviction observations. A ratio is derived from
+     * the number of conviction types.
+     * @returns [
+     * {
+     *  convValues: Array(Object),
+     *  nonConvValues: Array(Object),
+     *  property_type: "currency" | "vehicles" |"real-property" | "other",
+     *  ratio: convValues.length / (convValues.length + nonConvValues.length),
+     *  year: number
+     * },...]
      */
     _createPointsData() {
         let vis = this;
@@ -315,33 +257,16 @@ class LineChart {
         return ans;
     }
 
-
-    _nestDataPoint() {
-        let vis = this;
-        const result = vis.dataPoints.reduce((accumulator, currentValue) => {
-            const index = accumulator.findIndex(item => item.property_type === currentValue.property_type);
-            if (index === -1) {
-              accumulator.push({
-                property_type: currentValue.property_type,
-                values: [{year: currentValue.year, ratio: currentValue.ratio}]
-              });
-            } else {
-              accumulator[index].values.push({year: currentValue.year, ratio: currentValue.ratio});
-            }
-            return accumulator;
-          }, []);
-
-        return result;
-    }
-
     /**
-     * [
-     *  { 
-     *      year1: 
-     *      ratio1: 
-     *      year2: 
-     *      ratio2:
-     *  },
+     * Return an object for every (year, property_type) which has datapoints for the following (year + 1, property_type)
+     * @returns [
+     * {
+     *     property_type : "currency" | "vehicles" |"real-property" | "other",
+     *     ratio1: number,
+     *     ratio2: number,
+     *     year1 : number,
+     *     year2 : number
+     * }...
      * ]
      */
     _createLineData() {
@@ -394,29 +319,7 @@ class LineChart {
 			.attr('cy', d => this.yScale(d["ratio"]))
 			.attr('cx', d => this.xScale(d["year"]))
             .attr('class', d => vis._convertPropertyName(d['property_type']))
-            .classed('points', true)
-            .on("mouseover", function(event, e) {
-                console.log(e);
-				d3.select('#tooltip')
-                    .style('display', 'block')
-				  .html(`
-                    <div<
-				  		<div> Year : ${e.year} </div>
-                        <div> Property Type : ${e.property_type}
-				  	 	<div> Ratio$ : ${e.ratio} </div>
-                        <div> Conviction Count: ${e.convValues.length} </div>
-                        <div> Non Conviction Count: ${e.nonConvValues.length} </div>
-                    </div>
-				 	`);
-			})
-            .on('mousemove', function (event, _) {
-				d3.select('#tooltip')
-				  	.style('left', `${event.pageX + vis.config.tooltipPadding}px`)   
-				  	.style('top', `${event.pageY + vis.config.tooltipPadding}px`)
-			})
-			.on('mouseleave', () => {
-				d3.select('#tooltip').style('display', 'none');;
-			});
+            .classed('points', true);
     }
 
     _renderLines() {
@@ -431,6 +334,66 @@ class LineChart {
             .attr('y2', d => {return vis.yScale(d['ratio2'])})
             .attr('class', d => vis._convertPropertyName(d['property_type']))
             .classed('chart-line', true);
+    }
+
+    _addEventListeners() {
+        let vis = this;
+
+        // Add event Listeners:
+        d3.selectAll(".points, .chart-line")
+            // When hovering over a point/line, it will highlight the line and highlight the corresponding bar in the bar chart view.
+            .on('mouseover', function(event, e) {
+                const element = d3.select(this);
+                const propertyClass = element.attr('class').split(" ").filter(i => i !== 'points' && i !== 'chart-line');
+
+                d3.selectAll(`.${propertyClass}`)
+                    .classed("hover", true)
+
+                d3.selectAll('.rect')
+                    .filter(d => d["data"]["PROP_TYPE"] === vis._convertPropertyNameDisplay(propertyClass[0]))
+                    .style('stroke-width', 5);
+
+                // If the user mouses over a point, the tooltip will be displayed.
+                if (element.classed("points")) {
+                    d3.select('#tooltip')
+                    .style('display', 'block')
+                    .html(`
+                        <div
+                            <div class="tooltip-title"> ${vis._convertPropertyNameDisplay(e.property_type)} in ${e.year} </div>
+                            <div> Ratio : ${e.ratio} </div>
+                            <div> Conviction Count: ${e.convValues.length} </div>
+                            <div> Non Conviction Count: ${e.nonConvValues.length} </div>
+                        </div>
+                        `);
+                }
+
+            })
+            // The barchart and line/points will no longer be highlighted when the user's mouse leaves.
+            .on('mouseleave', function(event, e) {
+                const element = d3.select(this);
+                const propertyClass = element.attr('class').split(" ").filter(i => i !== 'points' && i !== 'chart-line');
+
+                d3.selectAll(`.${propertyClass[0]}`)
+                    .classed("hover", false);
+
+                d3.selectAll('.rect')
+                    .filter(d => d["data"]["PROP_TYPE"] === vis._convertPropertyNameDisplay(propertyClass[0]))
+                    .style('stroke-width', null);
+                
+                // If the user leaves a point, the tooltip will be hidden.
+                if (element.classed("points")) {
+                    d3.select('#tooltip').style('display', 'none');
+                }
+            });
+
+            d3.selectAll(".points")
+                // THe tooltip will move in accordance to the user's mouse if it's over a point
+                .on('mousemove', function (event, _) {
+                    d3.select('#tooltip')
+                        .style('left', `${event.pageX + vis.config.tooltipPadding}px`)   
+                        .style('top', `${event.pageY + vis.config.tooltipPadding}px`)
+                });
+
     }
 
 
