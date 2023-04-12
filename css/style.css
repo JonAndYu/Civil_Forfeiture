@@ -148,10 +148,19 @@
     z-index: 998;
 }
 
+.points.hover {
+    fill: black;
+}
+
 .chart-line {
     fill: none;
+    opacity: 0.75;
     stroke-width: 2px;
-  }
+}
+
+.chart-line.hover {
+    stroke: black;
+}
 
 .vehicles {
     fill: #fbb4ae;

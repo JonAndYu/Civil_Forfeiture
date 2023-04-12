@@ -2,7 +2,7 @@ let violinPlot;
 let choroplethMap;
 let lineChart;
 let slider;
-const dispatcher = d3.dispatch('filterYear', 'filterCountry', 'filterPropertyType', 'hoverConvictionType');
+const dispatcher = d3.dispatch('filterYear', 'filterCountry', 'filterPropertyType', 'hoverPropertyType');
 /**
  * Load data from CSV file asynchronously and visualize it
  */
@@ -55,8 +55,17 @@ Promise.all([
         lineChart.updateVis();
     });
     
-    dispatcher.on("filterYear", range => {
+    dispatcher.on("hoverPropertyType", markType => {
+        console.log(markType);
+        // Modify the markType
 
+        // If this is true that means the dispatcher was called inside of lineChart, modify barchart
+        // by hover
+        if (Array.isArray(markType)) {
+            
+        } else { // Modify linechart
+
+        }
     });
     
     dispatcher.on("filterPropertyType", countryData => {
