@@ -178,7 +178,8 @@ class BarChart {
                         .filter(d => d["data"]["PROP_TYPE"] === markType)
                         .classed("selected", !isActive);
                     
-                    vis.dispatcher.call('filterPropertyType', event, vis.data.filter(d => d.PROP_TYPE === markType));
+                    const countryData = !isActive ? vis.data.filter(d => d.PROP_TYPE === markType) : vis.data.filter(d => d["YEAR"] >= 1986);
+                    vis.dispatcher.call('filterPropertyType', event, countryData);
                 })
                 .on('mouseover', function(event, e) {
                     const markType = e["data"]["PROP_TYPE"];
@@ -202,7 +203,7 @@ class BarChart {
                         .filter(d => {
                             return d["property_type"] === vis._convertPropertyNameClass(markType)})
                         .classed("hover", false);
-                })
+                });
 
         vis.xAxisG.call(vis.xAxis);
 
