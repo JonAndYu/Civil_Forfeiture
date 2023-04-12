@@ -12,7 +12,7 @@ def main():
     # Any np.nan value gets replace by "Other"
     for category in categories:
         revenue[category] = revenue[category].str.title()
-        revenue[category] = revenue[category].fillna("Other")
+        revenue[category] = revenue[category].fillna("Unknown")
 
     revenue["PROCD_TYPE"] = revenue["PROCD_TYPE"].str.title()
     revenue["PROCD_TYPE"] = revenue["PROCD_TYPE"].fillna("Unknown")
@@ -42,8 +42,10 @@ def main():
     # Global Ration of prop types
     vehicle_count = (revenue["PROP_TYPE"].values == 'Vehicles').sum()
     real_count = (revenue["PROP_TYPE"].values == 'Real Property').sum()
-    prop_known_count = (revenue["PROP_TYPE"].values != 'Other').sum()
+    currency_count = (revenue["PROP_TYPE"].values == 'Currency').sum()
+    prop_known_count = (revenue["PROP_TYPE"].values != 'Unknown').sum()
     vehicle_known_ratio = vehicle_count / prop_known_count
+    currency_known_ratio = currency_count / prop_known_count
     real_known_ratio = real_count / prop_known_count
 
     # Determine the number conv needed for each state
@@ -65,19 +67,23 @@ def main():
         # PROP_TYPE
         state_vehicle_num = 0
         state_real_num = 0
+        state_currency_num = 0
 
-        prop_unknown_state = ((revenue["PROP_TYPE"].values == 'Other') & (revenue["STATE"].values == state)).sum()
+        prop_unknown_state = ((revenue["PROP_TYPE"].values == 'Unknown') & (revenue["STATE"].values == state)).sum()
         vehicle_state = ((revenue["PROP_TYPE"].values == 'Vehicles') & (revenue["STATE"].values == state)).sum()
         real_state = ((revenue["PROP_TYPE"].values == 'Real Property') & (revenue["STATE"].values == state)).sum()
-        prop_known_state = ((revenue["PROP_TYPE"].values != 'Other') & (revenue["STATE"].values == state)).sum()
+        currency_state = ((revenue["PROP_TYPE"].values == 'Currency') & (revenue["STATE"].values == state)).sum()
+        prop_known_state = ((revenue["PROP_TYPE"].values != 'Unknown') & (revenue["STATE"].values == state)).sum()
 
         if prop_known_state == 0:
             state_vehicle_num = (int) (vehicle_known_ratio * prop_unknown_state)
             state_real_num = (int) (real_known_ratio * prop_unknown_state)
+            state_currency_num = (int)(currency_known_ratio * prop_unknown_state)
         else:
             state_vehicle_num = (int) ((vehicle_state / prop_known_state) * prop_unknown_state)
             state_real_num = (int) ((real_state / prop_known_state) * prop_unknown_state)
-        state_prop[state] = [state_vehicle_num, state_real_num]
+            state_currency_num = (int) ((currency_state / prop_known_state) * prop_unknown_state)
+        state_prop[state] = [state_vehicle_num, state_real_num, state_currency_num]
 
     print(state_dict)
     print(state_prop)
@@ -91,7 +97,7 @@ def main():
             else:
                 revenue.loc[index, "CONV_TYPE"] = 'No Conviction'
 
-        if row["PROP_TYPE"] == 'Other':
+        if row["PROP_TYPE"] == 'Unknown':
             if state_prop[row["STATE"]][0] > 0:
                 revenue.loc[index, "PROP_TYPE"] = 'Vehicles'
                 state_prop[row["STATE"]][0] -= 1
@@ -100,8 +106,12 @@ def main():
                 revenue.loc[index, "PROP_TYPE"] = 'Real Property'
                 state_prop[row["STATE"]][1] -= 1
 
-            else:
+            elif state_prop[row["STATE"]][2] > 0:
                 revenue.loc[index, "PROP_TYPE"] = 'Currency'
+                state_prop[row["STATE"]][2] -= 1
+
+            else:
+                revenue.loc[index, "PROP_TYPE"] = 'Other'
 
     revenue.to_csv("processed_revenue.csv", index=False)
 
