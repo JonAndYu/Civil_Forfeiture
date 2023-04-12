@@ -5,7 +5,8 @@ class BarChart {
             legendElement: _config.legendElement,
             containerWidth: _config.containerWidth || 600,
             containerHeight: _config.containerHeight || 450,
-            margin: { top: 20, bottom: 20, right: 20, left: 50}
+            margin: { top: 20, bottom: 20, right: 20, left: 50},
+            tooltipPadding: 10,
         };
         this.data = _data;
         this.initVis();
@@ -191,6 +192,20 @@ class BarChart {
                     d3.selectAll(".points, .chart-line")
                         .filter(d => {return d["property_type"] === vis._convertPropertyNameClass(markType)})
                         .classed("hover", true);
+
+                    const convictionType = e[1] === e['data']['Conviction'] ? 'Conviction' : 'Non Conviction';
+                    const amount = convictionType === 'Conviction' ? e['data']['Conviction'] : e['data']['No_Conviction'];
+
+                    d3.select('#tooltip')
+                        .style('display', 'block')
+                        .html(`
+                            <div
+                                <div class="tooltip-title"> ${convictionType}</div>
+                                <div> Revenue ($ USD) : $ ${amount} </div>
+                            </div>
+                            `);
+                    
+                    
                 })
                 .on('mouseleave', function(event, e) {
                     const markType = e["data"]["PROP_TYPE"];
@@ -203,6 +218,13 @@ class BarChart {
                         .filter(d => {
                             return d["property_type"] === vis._convertPropertyNameClass(markType)})
                         .classed("hover", false);
+                    
+                    d3.select('#tooltip').style('display', 'none');
+                })
+                .on('mousemove', function(event, e) {
+                    d3.select('#tooltip')
+                        .style('left', `${event.pageX + vis.config.tooltipPadding}px`)   
+                        .style('top', `${event.pageY + vis.config.tooltipPadding}px`)
                 });
 
         vis.xAxisG.call(vis.xAxis);
