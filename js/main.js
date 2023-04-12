@@ -69,10 +69,8 @@ Promise.all([
     });
     
     dispatcher.on("filterPropertyType", countryData => {
-        barChart.data = countryData;
-        lineChart.data = coutnryData;
-    
-        barChart.updateVis();
+        lineChart.data = countryData;
+
         lineChart.updateVis();
     });
 

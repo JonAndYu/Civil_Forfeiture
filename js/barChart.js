@@ -7,7 +7,7 @@ class BarChart {
             containerHeight: _config.containerHeight || 450,
             margin: { top: 20, bottom: 20, right: 20, left: 50}
         };
-        this.data = _data;
+        this.data = _data.filter(d => d["YEAR"] >= 1986);
         this.initVis();
         this.dispatcher = _dispatcher;
     }
@@ -177,6 +177,9 @@ class BarChart {
                     d3.selectAll(".rect")
                         .filter(d => d["data"]["PROP_TYPE"] === markType)
                         .classed("selected", !isActive);
+                    
+                    const countryData = !isActive ? vis.data.filter(d => d.PROP_TYPE === markType) : vis.data.filter(d => d["YEAR"] >= 1986);
+                    vis.dispatcher.call('filterPropertyType', event, countryData);
                 })
                 .on('mouseover', function(event, e) {
                     const markType = e["data"]["PROP_TYPE"];
@@ -200,7 +203,7 @@ class BarChart {
                         .filter(d => {
                             return d["property_type"] === vis._convertPropertyNameClass(markType)})
                         .classed("hover", false);
-                })
+                });
 
         vis.xAxisG.call(vis.xAxis);
 

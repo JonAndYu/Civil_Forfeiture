@@ -31,10 +31,6 @@ class LineChart {
 
         // vis._initAxisLabels();
 
-        // Add button functionality
-        vis._filterSelect("#filter-others");
-        vis._filterSelect("#filter-zeros");
-
         vis.updateVis();
     }
 
@@ -404,16 +400,6 @@ class LineChart {
     _renderLines() {
         let vis = this;
 
-        // vis.chart.selectAll('.chart-line')
-        //     .data(vis.lineData, d => [d.property_type])
-        //     .join('g')
-        //     .classed('chart-line', true)
-        //     .selectAll('.line')
-        //     .data(d => {return [d.values]})
-        //     .join('path')
-        //     .classed('line', true)
-        //     .attr('d', d => {console.log(d); return vis.line(d)});
-
         vis.chart.selectAll('.chart-line')
             .data(vis.lineData)
         .join('line')
@@ -487,28 +473,4 @@ class LineChart {
     }
 
     //#endregion
-
-    //#region Event Handlers
-
-    /**
-     * Button Event Listender
-     * @param {*} selector 
-     */
-    _filterSelect(selector) {
-        let vis = this;
-        let button = d3.select(selector);
-
-        button.on("click", function(event, e) {
-
-            const element = d3.select(this);
-            const isActive = element.classed("selected");
-
-            element.classed("selected", !isActive);
-            
-            vis.updateVis()
-        });
-    }
-
-    //#endregion
-
 }
