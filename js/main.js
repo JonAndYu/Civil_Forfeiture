@@ -1,4 +1,4 @@
-let violinPlot;
+let barChart;
 let choroplethMap;
 let lineChart;
 let slider;
@@ -54,8 +54,6 @@ Promise.all([
 
             barChart.updateVis();
             lineChart.updateVis();
-
-            d3.selectAll('.title').innerHTML = "Civil Asset Forfeiture";
         }
         else {
             selectedCategory = d3.select(this).attr('name');
@@ -66,8 +64,6 @@ Promise.all([
 
             barChart.updateVis();
             lineChart.updateVis();
-
-            d3.selectAll('.title').innerHTML = "Civil Asset Forfeiture: " + selectedCategory;
         }
     });
     
