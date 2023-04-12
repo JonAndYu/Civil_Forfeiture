@@ -54,6 +54,8 @@ Promise.all([
 
             barChart.updateVis();
             lineChart.updateVis();
+
+            d3.select('#title').html(`<h1>Civil Asset Forfeiture</h1>`);
         }
         else {
             selectedCategory = d3.select(this).attr('name');
@@ -64,6 +66,8 @@ Promise.all([
 
             barChart.updateVis();
             lineChart.updateVis();
+
+            d3.select('#title').html(`<h1>Civil Asset Forfeiture: ${selectedCategory}</h1>`);
         }
     });
     
