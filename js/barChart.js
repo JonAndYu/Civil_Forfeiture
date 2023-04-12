@@ -1,13 +1,16 @@
 class BarChart {
-    constructor(_config, _data) {
+    constructor(_config, _data, _dispatcher) {
         this.config = {
             parentElement: _config.parentElement,
+            legendElement: _config.legendElement,
             containerWidth: _config.containerWidth || 600,
             containerHeight: _config.containerHeight || 450,
-            margin: { top: 20, bottom: 20, right: 20, left: 50}
+            margin: { top: 20, bottom: 20, right: 20, left: 50},
+            tooltipPadding: 10,
         };
         this.data = _data;
         this.initVis();
+        this.dispatcher = _dispatcher;
     }
 
     initVis() {
@@ -30,7 +33,7 @@ class BarChart {
         vis.yAxis = d3.axisLeft(vis.yScale).ticks(6);
 
         // Define size of SVG drawing area
-        vis.svg = d3.select(this.config.parentElement).append('svg')
+        vis.svg = d3.select(vis.config.parentElement).append('svg')
             .attr('width', vis.config.containerWidth)
             .attr('height', vis.config.containerHeight);
 
@@ -64,30 +67,23 @@ class BarChart {
             .text('Revenue in US Dollars');
 
         // color palette for different conviction types
-        vis.colors = ['#e41a1c','#fffff1','#377eb8'];
+        vis.colors = ['#e55153','black','#377eb8'];
 
         // append legends
-        vis.legend = vis.chart.append("g")
-            .attr("font-family", "sans-serif")
-            .attr("font-size", 10)
-            .attr("text-anchor", "end")
-            .selectAll("g")
-            .data(['Conviction','No Conviction','Unknown'])
-            .enter().append("g")
-            .attr("transform", function(d, i) { return "translate(-30," + i * 20 + ")"; });
+        vis.legend = d3.select(vis.config.legendElement);
 
-        vis.legend.append("rect")
-            .attr("x", vis.width - 19)
-            .attr("width", 19)
-            .attr("height", 19)
-            .attr("fill", function(d, i) {
-            return vis.colors[i]; });
-
-        vis.legend.append("text")
-            .attr("x", vis.width - 24)
-            .attr("y", 9.5)
-            .attr("dy", "0.32em")
-            .text(function(d) { return d; });
+        for (const key in ['Conviction','No Conviction','Unknown']){
+            let cur = vis.legend.append("g");
+            cur.append('rect')
+                .attr("width", 19)
+                .attr("height", 19)
+                .attr("fill", vis.colors[key])
+                .attr('transform', `translate(0, ${key*30 })`);
+            cur.append("text")
+                .attr("dy", "0.32em")
+                .attr('transform', `translate(30, ${key*30 + 10 })`)
+                .text(['Conviction','No Conviction','Unknown'][key]);
+        }
 
         vis.updateVis();
 
@@ -98,7 +94,7 @@ class BarChart {
 
         // filtering data by property types and conviction type
         vis.subgroups = ['Conviction','No_Conviction','Unknown'];
-        vis.filteredData = vis.data.filter(d => d.REV > 0 && d.PROP_TYPE != NaN && d.REV != NaN);
+        vis.filteredData = vis.data.filter(d => d.PROP_TYPE != NaN && d.REV != NaN);
         vis.finalData = d3.rollup(vis.filteredData, v => d3.sum(v, d=>d.REV), d=>d.PROP_TYPE, d=>d.CONV_TYPE);
 
         //rollup data get sum of REV by prop_type
@@ -146,18 +142,23 @@ class BarChart {
 
     renderVis() {
         let vis = this;
-        
-        let bars = vis.chart.append('g').selectAll('g')
+        vis.chart.selectAll('bars').remove();
+        vis.chart.selectAll('rect').remove();
+
+        let bars = vis.chart.selectAll('bars')
             .data(vis.stackedData)
-            .enter().append('g')
-            .attr("class", "bars")
-            .attr('opacity', 0.5)
+            .join('g')
+            .classed('bars', true)
             .attr("fill", function(d, i) {
                 return vis.colors[i]; })
+            .style('stroke', function(d, i) {
+                return vis.colors[i]; })
+            .style('stroke-width', 1)
             .selectAll("rect")
             // enter a second time = loop subgroup per subgroup to add all rectangles
             .data(function(d) {return d; })
-            .enter().append("rect")
+            .join("rect")
+            .classed('rect', true)
             .attr("x", function(d) {
                 return vis.xScale(d.data.PROP_TYPE); })
             .attr("y", function(d) {
@@ -167,9 +168,103 @@ class BarChart {
             })
             .attr("width", vis.xScale.bandwidth());
 
+            // Add Event Listeners to marks
+            d3.selectAll('.rect')
+                .on('click', function(event, e) {
+                    const element = d3.select(this);
+                    const markType = e["data"]["PROP_TYPE"];
+                    const isActive = element.classed("selected");
+
+                    d3.selectAll(".rect")
+                        .filter(d => d["data"]["PROP_TYPE"] === markType)
+                        .classed("selected", !isActive);
+                    
+                    const countryData = !isActive ? vis.data.filter(d => d.PROP_TYPE === markType) : vis.data;
+                    vis.dispatcher.call('filterPropertyType', event, countryData);
+                })
+                .on('mouseover', function(event, e) {
+                    const markType = e["data"]["PROP_TYPE"];
+
+                    d3.selectAll('.rect')
+                        .filter(d => d["data"]["PROP_TYPE"] === markType)
+                        .style('stroke-width', 5);
+   
+                    d3.selectAll(".points, .chart-line")
+                        .filter(d => {return d["property_type"] === vis._convertPropertyNameClass(markType)})
+                        .classed("hover", true);
+
+                    const convictionType = e[1] === e['data']['Conviction'] ? 'Conviction' : 'Non Conviction';
+                    const amount = convictionType === 'Conviction' ? e['data']['Conviction'] : e['data']['No_Conviction'];
+
+                    d3.select('#tooltip')
+                        .style('display', 'block')
+                        .html(`
+                            <div
+                                <div class="tooltip-title"> ${convictionType}</div>
+                                <div> Revenue ($ USD) : $ ${amount} </div>
+                            </div>
+                            `);
+                    
+                    
+                })
+                .on('mouseleave', function(event, e) {
+                    const markType = e["data"]["PROP_TYPE"];
+
+                    d3.selectAll('.rect')
+                        .filter(d => d["data"]["PROP_TYPE"] === markType)
+                        .style('stroke-width', null);
+
+                    d3.selectAll(".points, .chart-line")
+                        .filter(d => {
+                            return d["property_type"] === vis._convertPropertyNameClass(markType)})
+                        .classed("hover", false);
+                    
+                    d3.select('#tooltip').style('display', 'none');
+                })
+                .on('mousemove', function(event, e) {
+                    d3.select('#tooltip')
+                        .style('left', `${event.pageX + vis.config.tooltipPadding}px`)   
+                        .style('top', `${event.pageY + vis.config.tooltipPadding}px`)
+                });
 
         vis.xAxisG.call(vis.xAxis);
 
         vis.yAxisG.call(vis.yAxis);
+    }
+
+    /**
+     * Converts class property name to display property name
+     */
+    _convertPropertyNameDisplay(val) {
+        switch(val) {
+            case 'currency':
+                return 'Currency';
+            case 'vehicles':
+                return 'Vehicles';
+            case 'real-property':
+                return 'Real Property';
+            case 'other':
+                return 'Other';
+            default:
+                return val;
+        }
+    }
+
+    /**
+     * Converts display property name to class property name
+     */
+    _convertPropertyNameClass(val) {
+        switch(val) {
+            case 'Currency':
+                return 'currency';
+            case 'Vehicles':
+                return 'vehicles';
+            case 'Real Property':
+                return 'real-property';
+            case 'Other':
+                return 'other';
+            default:
+                return val;
+        }
     }
 }

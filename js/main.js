@@ -1,7 +1,8 @@
-let violinPlot;
-let choroplethMap;
 let barChart;
+let choroplethMap;
+let lineChart;
 let slider;
+const dispatcher = d3.dispatch('filterYear', 'filterCountry', 'filterPropertyType', 'hoverPropertyType');
 /**
  * Load data from CSV file asynchronously and visualize it
  */
@@ -16,7 +17,7 @@ Promise.all([
     revData.forEach(d => {
         d.YEAR = +d.YEAR;
         d.REV = +d.REV;
-    })
+    });
 
     geoData.objects.states.geometries.forEach(d => {
         d.properties.data_density = 0;
@@ -31,27 +32,63 @@ Promise.all([
         }
     });
 
-    slider = new Slider({parentElement:'#slider'}, data[1]);
+    slider = new Slider({parentElement:'#slider'}, data[1], dispatcher);
 
     choroplethMap = new ChoroplethMap({
         parentElement: '#map'
-    }, data[0]);
+    }, data[0], dispatcher);
 
-    violinPlot = new ViolinPlot({parentElement:'#violin-plot', legendElement: '#violin-legend-contents'}, data[1]);
-    console.log(violinPlot);
-    barChart = new BarChart({parentElement:'#bar-chart'}, data[1]);
+    lineChart = new LineChart({parentElement:'#line-plot', legendElement: '#legend-contents'}, data[1], dispatcher);
+    barChart = new BarChart({parentElement:'#bar-chart', legendElement: '#bar-chart-legend-contents'}, data[1], dispatcher);
 
+    let selectedCategory = "";
 
     d3.selectAll('.state').on('click', function() {
+        if (selectedCategory == d3.select(this).attr('name')) {
 
-        let selectedCategory = d3.select(this).attr('name');
+            // Filter data accordingly and update
+            selectedCategory = "";
 
-        // Filter data accordingly and update vis
-        barChart.data = revData.filter(d => selectedCategory.localeCompare(d.STATE));
-        violinPlot.data = revData.filter(d => selectedCategory.localeCompare(d.STATE));
+            barChart.data = revData;
+            lineChart.data = revData;
 
-        barChart.updateVis();
-        violinPlot.updateVis();
+            barChart.updateVis();
+            lineChart.updateVis();
+
+            d3.select('#title').html(`<h1>Civil Asset Forfeiture</h1>`);
+        }
+        else {
+            selectedCategory = d3.select(this).attr('name');
+
+            // Filter data accordingly and update
+            barChart.data = revData.filter(d => d.STATE === selectedCategory);
+            lineChart.data = revData.filter(d => d.STATE === selectedCategory && d["YEAR"] >= 1986);
+
+            barChart.updateVis();
+            lineChart.updateVis();
+
+            d3.select('#title').html(`<h1>Civil Asset Forfeiture: ${selectedCategory}</h1>`);
+        }
+    });
+    
+    dispatcher.on("hoverPropertyType", markType => {
+        console.log(markType);
+        // Modify the markType
+
+        // If this is true that means the dispatcher was called inside of lineChart, modify barchart
+        // by hover
+        if (Array.isArray(markType)) {
+            
+        } else { // Modify linechart
+
+        }
+    });
+    
+    dispatcher.on("filterPropertyType", countryData => {
+        lineChart.data = countryData;
+
+        lineChart.updateVis();
     });
 
 }).catch(error => console.error(error));
+
