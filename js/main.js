@@ -41,18 +41,34 @@ Promise.all([
     lineChart = new LineChart({parentElement:'#line-plot', legendElement: '#legend-contents'}, data[1], dispatcher);
     barChart = new BarChart({parentElement:'#bar-chart', legendElement: '#bar-chart-legend-contents'}, data[1], dispatcher);
 
-    d3.selectAll('.state').on('click', function() {
+    let selectedCategory = "";
 
-        let selectedCategory = d3.select(this).attr('name');
-    
-        // Filter data accordingly and update
-    
-         
-        barChart.data = revData.filter(d => d.STATE === selectedCategory);
-        lineChart.data = revData.filter(d => d.STATE === selectedCategory && d["YEAR"] >= 1986);
-    
-        barChart.updateVis();
-        lineChart.updateVis();
+    d3.selectAll('.state').on('click', function() {
+        if (selectedCategory == d3.select(this).attr('name')) {
+
+            // Filter data accordingly and update
+            selectedCategory = "";
+
+            barChart.data = revData;
+            lineChart.data = revData;
+
+            barChart.updateVis();
+            lineChart.updateVis();
+
+            d3.selectAll('.title').innerHTML = "Civil Asset Forfeiture";
+        }
+        else {
+            selectedCategory = d3.select(this).attr('name');
+
+            // Filter data accordingly and update
+            barChart.data = revData.filter(d => d.STATE === selectedCategory);
+            lineChart.data = revData.filter(d => d.STATE === selectedCategory && d["YEAR"] >= 1986);
+
+            barChart.updateVis();
+            lineChart.updateVis();
+
+            d3.selectAll('.title').innerHTML = "Civil Asset Forfeiture: " + selectedCategory;
+        }
     });
     
     dispatcher.on("hoverPropertyType", markType => {
