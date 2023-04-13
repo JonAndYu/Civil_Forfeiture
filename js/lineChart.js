@@ -159,21 +159,14 @@ class LineChart {
             .attr('transform', `translate(${vis.config.width - 50}, ${vis.config.height - 4})`)
             .text("Year");
 
-        // Add the Revenue axis Label
+        // Add the ratio axis Label
         vis.chart.append('text')
             .style('fill', "black")
             .style('font-size', 24)
             .style('font-weight', "bold")
             .attr('transform', `translate(-50, -8)`)
-            .text("Ratio (Conviction/Total Cases)");
+            .text("Ratio (Conviction #/Total Cases)");
 
-        // Add the count axis Lable
-        vis.chart.append('text')
-        .style('fill', "black")
-        .style('font-size', 14)
-        .style('font-weight', "bold")
-        .attr('transform', `translate(${vis.config.width - 20}, -18)`)
-        .text("Count");
     }
 
     //#endregion
@@ -189,7 +182,7 @@ class LineChart {
         // Helper function that inclusively returns a range of values between start and end.
         const getRange = (start, end) => [...Array.from({ length: end - start + 1 }, (_, i) => start + i)];
 
-        vis.yScale.domain([d3.min(vis.dataPoints.map(d => d.ratio)) - 0.05,1]);
+        vis.yScale.domain([d3.min(vis.dataPoints.map(d => d.ratio)) - 0.005,1]);
 
         vis.xScale.domain(d3.extent(vis.dataPoints.map(d => d['year'])));
         vis.xAxisB.tickValues(getRange(d3.min(vis.dataPoints.map(d => d['year'])), d3.max(vis.dataPoints.map(d => d['year']))));
@@ -204,12 +197,14 @@ class LineChart {
             .style("text-anchor", "end")
             .attr("dx", "-.8em")
             .attr("dy", ".15em")
+            .style("font-size", "16px")
             .attr("transform", "rotate(-65)");
 
         vis.yAxis
             .transition()
             .duration(1000)
-            .call(vis.yAxisL);
+            .call(vis.yAxisL)
+            .style("font-size", "16px")
     }
 
     /**

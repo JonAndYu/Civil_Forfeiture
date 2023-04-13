@@ -175,6 +175,9 @@ class BarChart {
                     const markType = e["data"]["PROP_TYPE"];
                     const isActive = element.classed("selected");
 
+                    d3.selectAll('.selected')
+                        .classed('selected', false);
+
                     d3.selectAll(".rect")
                         .filter(d => d["data"]["PROP_TYPE"] === markType)
                         .classed("selected", !isActive);
@@ -227,9 +230,9 @@ class BarChart {
                         .style('top', `${event.pageY + vis.config.tooltipPadding}px`)
                 });
 
-        vis.xAxisG.call(vis.xAxis);
+        vis.xAxisG.call(vis.xAxis).style("font-size", "12px");
 
-        vis.yAxisG.call(vis.yAxis);
+        vis.yAxisG.call(vis.yAxis).style("font-size", "12px");
     }
 
     /**
