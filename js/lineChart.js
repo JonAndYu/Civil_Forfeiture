@@ -100,12 +100,12 @@ class LineChart {
         vis.radiusScale = d3.scaleSqrt()
 			.range([3, 9]);
 
-        vis.yAxisL = d3.axisLeft(vis.yScale);
+        vis.yAxisL = d3.axisLeft(vis.yScale).tickSizeOuter(0);
         vis.yAxis = vis.chartArea.append('g')
             .attr('class', 'axis y-axis');
 
         vis.xAxisB = d3.axisBottom(vis.xScale)
-            .tickFormat(d3.format("d")); 
+            .tickFormat(d3.format("d")).tickSizeOuter(0); 
     }
 
     /**

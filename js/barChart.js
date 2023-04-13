@@ -29,8 +29,8 @@ class BarChart {
             .range([vis.height, 0]);
 
         // Initialize axes
-        vis.xAxis = d3.axisBottom(vis.xScale);
-        vis.yAxis = d3.axisLeft(vis.yScale).ticks(6);
+        vis.xAxis = d3.axisBottom(vis.xScale).tickSizeOuter(0);
+        vis.yAxis = d3.axisLeft(vis.yScale).ticks(6).tickSizeOuter(0);
 
         // Define size of SVG drawing area
         vis.svg = d3.select(vis.config.parentElement).append('svg')
