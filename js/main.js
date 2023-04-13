@@ -51,9 +51,11 @@ Promise.all([
 
             barChart.data = revData;
             lineChart.data = revData;
+            slider.data = revData;
 
             barChart.updateVis();
             lineChart.updateVis();
+            slider.updateVis();
 
             d3.select('#title').html(`<h1>Civil Asset Forfeiture</h1>`);
         }
@@ -63,9 +65,11 @@ Promise.all([
             // Filter data accordingly and update
             barChart.data = revData.filter(d => d.STATE === selectedCategory);
             lineChart.data = revData.filter(d => d.STATE === selectedCategory && d["YEAR"] >= 1986);
+            slider.data = revData.filter(d => d.STATE === selectedCategory);
 
             barChart.updateVis();
             lineChart.updateVis();
+            slider.updateVis();
 
             d3.select('#title').html(`<h1>Civil Asset Forfeiture: ${selectedCategory}</h1>`);
         }
