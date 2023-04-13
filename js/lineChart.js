@@ -4,7 +4,7 @@ class LineChart {
         this.config = {
             parentElement: _config.parentElement,
             legendElement: _config.legendElement,
-            margin: { top: 30, bottom: 50, right: 20, left: 100},
+            margin: { top: 30, bottom: 50, right: 60, left: 100},
             tooltipPadding: 10,
         };
 
@@ -157,7 +157,7 @@ class LineChart {
             .style('fill', "black")
             .style('font-size', 24)
             .style('font-weight', "bold")
-            .attr('transform', `translate(${vis.config.width - 50}, ${vis.config.height - 4})`)
+            .attr('transform', `translate(${vis.config.width + 10}, ${vis.config.height +35})`)
             .text("Year");
 
         // Add the ratio axis Label
@@ -165,7 +165,7 @@ class LineChart {
             .style('fill', "black")
             .style('font-size', 24)
             .style('font-weight', "bold")
-            .attr('transform', `translate(-50, -8)`)
+            .attr('transform', `translate(-50, 310) rotate(-90)`)
             .text("Ratio (Conviction #/Total Cases)");
 
     }

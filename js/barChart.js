@@ -5,7 +5,7 @@ class BarChart {
             legendElement: _config.legendElement,
             containerWidth: _config.containerWidth || 600,
             containerHeight: _config.containerHeight || 450,
-            margin: { top: 20, bottom: 20, right: 20, left: 50},
+            margin: { top: 20, bottom: 30, right: 20, left: 70},
             tooltipPadding: 10,
         };
         this.data = _data;
@@ -51,20 +51,23 @@ class BarChart {
             .attr('class', 'axis y-axis');
 
         // Append both axis titles
-        vis.svg.append('text')
-            .attr('class', 'axis-title')
-            .attr('y', vis.height - 15)
-            .attr('x', vis.config.containerWidth)
-            .attr('dy', '.71em')
-            .style('text-anchor', 'end')
-            .text('Property type');
+        // vis.svg.append('text')
+        //     .attr('class', 'axis-title')
+        //     .attr('y', vis.height - 15)
+        //     .attr('x', vis.config.containerWidth)
+        //     .attr('dy', '.71em')
+        //     .style('text-anchor', 'end')
+        //     .text('Property type');
 
         vis.svg.append('text')
             .attr('class', 'axis-title')
             .attr('x', 0)
             .attr('y', 0)
             .attr('dy', '.71em')
-            .text('Revenue in US Dollars');
+            .attr('transform', `translate(2, 300) rotate(-90)`)
+            .style('font-size', 24)
+            .style('font-weight', "bold")
+            .text('Revenue ($USD)');
 
         // color palette for different conviction types
         vis.colors = ['#e55153','black'];
@@ -230,7 +233,7 @@ class BarChart {
                         .style('top', `${event.pageY + vis.config.tooltipPadding}px`)
                 });
 
-        vis.xAxisG.call(vis.xAxis).style("font-size", "12px");
+        vis.xAxisG.call(vis.xAxis).style("font-size", "18px");
 
         vis.yAxisG.call(vis.yAxis).style("font-size", "12px");
     }
