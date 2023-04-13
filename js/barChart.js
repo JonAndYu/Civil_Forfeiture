@@ -5,7 +5,7 @@ class BarChart {
             legendElement: _config.legendElement,
             containerWidth: _config.containerWidth || 600,
             containerHeight: _config.containerHeight || 450,
-            margin: { top: 20, bottom: 30, right: 20, left: 70},
+            margin: { top: 20, bottom: 30, right: 50, left: 70},
             tooltipPadding: 10,
         };
         this.data = _data;

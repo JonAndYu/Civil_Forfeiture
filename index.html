@@ -16,7 +16,7 @@
     <div class="box-wrapper">
         <div id="box1">
             <div id="slider-area">
-                <svg id="slider" height="154" width="600"></svg>
+                <svg id="slider" height="54" width="600"></svg>
             </div>
 
             <div id="map"></div>
@@ -44,8 +44,26 @@
             </p>
             <p>
                 The goal of our visualization is to allow concerned US citizens to uncover potential inequitable  forfeiture trends that occurred throughout the country.
-                We will impute observations with unknown property type to maintain the preexisting national ratio for property types and conviction types.            
+                The original dataset contained many incomplete observations so imputation was utilized to fill in unknown property and conviction types while still maintaing the pre-existing national and state ratios. 
             </p>
+            <table>
+                <thead>
+                  <tr>
+                    <th>Term</th>
+                    <th>Definition</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Property Type</td>
+                    <td>The category of the item seized by the state</td>
+                  </tr>
+                  <tr>
+                    <td>Ratio</td>
+                    <td># of court cases that ended with a conviction /&nbsp;&nbsp;# of court cases</td>
+                  </tr>
+                </tbody>
+                </table>
         </div>
     </div>
 

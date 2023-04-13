@@ -165,7 +165,7 @@ class LineChart {
             .style('fill', "black")
             .style('font-size', 24)
             .style('font-weight', "bold")
-            .attr('transform', `translate(-50, 310) rotate(-90)`)
+            .attr('transform', `translate(-75, 310) rotate(-90)`)
             .text("Ratio (Conviction #/Total Cases)");
 
     }
