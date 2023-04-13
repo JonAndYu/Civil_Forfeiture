@@ -89,10 +89,10 @@ class Slider {
             .attr("cx", vis.sliderfunc)
             .attr("cy", 15);
 
-        // add labels to the handles
+        // add labels to the handle
         vis.sliderLabels = vis.sliderSelection.selectAll(".label")
             .data(function(d) { return [d.value]; });
-
+        
         vis.sliderLabels.enter()
             .append("text")
             .attr("class", "label")
@@ -100,6 +100,7 @@ class Slider {
             .attr("y", 30)
             .attr("text-anchor", "middle")
             .text(function(d) { return d; });
+
 
         vis.sliderLabels.exit().remove();
     }
