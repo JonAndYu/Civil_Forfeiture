@@ -175,6 +175,9 @@ class BarChart {
                     const markType = e["data"]["PROP_TYPE"];
                     const isActive = element.classed("selected");
 
+                    d3.selectAll('.selected')
+                        .classed('selected', false);
+
                     d3.selectAll(".rect")
                         .filter(d => d["data"]["PROP_TYPE"] === markType)
                         .classed("selected", !isActive);
