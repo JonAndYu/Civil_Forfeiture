@@ -49,11 +49,13 @@ class Slider {
             .text("2019");
 
         vis.sliderfunc = d3.sliderBottom(vis.xScale)
-            .tickFormat(d3.format(".0f"))
+            .tickFormat(d3.format("d"))
             .default(vis.range)
             .on("onchange", function(d) {
                 vis.selected_range[0].value = d[0];
                 vis.selected_range[1].value = d[1];
+                const yearRange = [Math.round(d[0]),Math.round(d[1])]
+                vis.dispatcher.call('filterYear', event, yearRange);
             });
 
         vis.updateVis();
@@ -75,11 +77,6 @@ class Slider {
             .append("g")
             .attr("class", "slider")
             .call(vis.sliderfunc);
-
-        d3.select("#sliderValue1")
-            .text(vis.selected_range[0].value);
-        d3.select("#sliderValue2")
-            .text(vis.selected_range[1].value);
 
         // add handles
         vis.sliderHandles = vis.sliderSelection.selectAll(".handle")

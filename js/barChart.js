@@ -67,12 +67,12 @@ class BarChart {
             .text('Revenue in US Dollars');
 
         // color palette for different conviction types
-        vis.colors = ['#e55153','black','#377eb8'];
+        vis.colors = ['#e55153','black'];
 
         // append legends
         vis.legend = d3.select(vis.config.legendElement);
 
-        for (const key in ['Conviction','No Conviction','Unknown']){
+        for (const key in ['Conviction','No Conviction']){
             let cur = vis.legend.append("g");
             cur.append('rect')
                 .attr("width", 19)
@@ -82,7 +82,7 @@ class BarChart {
             cur.append("text")
                 .attr("dy", "0.32em")
                 .attr('transform', `translate(30, ${key*30 + 10 })`)
-                .text(['Conviction','No Conviction','Unknown'][key]);
+                .text(['Conviction','No Conviction'][key]);
         }
 
         vis.updateVis();
@@ -93,7 +93,7 @@ class BarChart {
         let vis = this;
 
         // filtering data by property types and conviction type
-        vis.subgroups = ['Conviction','No_Conviction','Unknown'];
+        vis.subgroups = ['Conviction','No_Conviction'];
         vis.filteredData = vis.data.filter(d => d.PROP_TYPE != NaN && d.REV != NaN);
         vis.finalData = d3.rollup(vis.filteredData, v => d3.sum(v, d=>d.REV), d=>d.PROP_TYPE, d=>d.CONV_TYPE);
 

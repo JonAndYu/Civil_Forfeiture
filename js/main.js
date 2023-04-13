@@ -70,6 +70,14 @@ Promise.all([
             d3.select('#title').html(`<h1>Civil Asset Forfeiture: ${selectedCategory}</h1>`);
         }
     });
+
+    dispatcher.on("filterYear", yearRange => {
+        barChart.data = revData.filter(d => d["YEAR"] >= yearRange[0] && d["YEAR"] <= yearRange[1]);
+        lineChart.data = revData.filter(d => d["YEAR"] >= yearRange[0] && d["YEAR"] <= yearRange[1]);
+ 
+        barChart.updateVis();
+        lineChart.updateVis();
+     });
     
     dispatcher.on("hoverPropertyType", markType => {
         console.log(markType);

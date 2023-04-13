@@ -29,7 +29,7 @@ class LineChart {
 
         vis._initLegend();
 
-        // vis._initAxisLabels();
+        vis._initAxisLabels();
 
         vis.updateVis();
     }
@@ -123,8 +123,7 @@ class LineChart {
         let prop_type_dict = {
             'Currency' : 'currency',
             'Vehicles' : 'vehicles',
-            'Real Property' : 'real-property',
-            'Other' : 'other'
+            'Real Property' : 'real-property'
         };
 
         let count = 1
@@ -157,7 +156,7 @@ class LineChart {
             .style('fill', "black")
             .style('font-size', 24)
             .style('font-weight', "bold")
-            .attr('transform', `translate(${vis.config.width - 50}, ${vis.config.height + 20})`)
+            .attr('transform', `translate(${vis.config.width - 50}, ${vis.config.height - 4})`)
             .text("Year");
 
         // Add the Revenue axis Label
@@ -165,8 +164,8 @@ class LineChart {
             .style('fill', "black")
             .style('font-size', 24)
             .style('font-weight', "bold")
-            .attr('transform', `translate(-50, -4)`)
-            .text("Revenue");
+            .attr('transform', `translate(-50, -8)`)
+            .text("Ratio (Conviction/Total Cases)");
 
         // Add the count axis Lable
         vis.chart.append('text')
