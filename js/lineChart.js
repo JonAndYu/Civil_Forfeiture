@@ -123,7 +123,8 @@ class LineChart {
         let prop_type_dict = {
             'Currency' : 'currency',
             'Vehicles' : 'vehicles',
-            'Real Property' : 'real-property'
+            'Real Property' : 'real-property',
+            'Other' : 'other'
         };
 
         let count = 1
