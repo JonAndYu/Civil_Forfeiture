@@ -34,9 +34,9 @@ Conversion notes:
 Jonathan Yu  \
 [Github](https://www.github.com/JonAndYu)
 
-[Linkedin](https://www.linkedin.com/in/jonathan-yu-114b701b1/)
-
 [Video](https://www.youtube.com/watch?v=wAAZYP6ZVvs&ab_channel=Jonomuffin)
+
+[Website](https://jonandyu.github.io/Civil_Forfeiture/)
 
 The original document was written in google docs then converted to markdown. Here is the google doc link to see the images. https://docs.google.com/document/d/1ISip4L0-r8eMpkg8ihSgi-rQ6yyq9LjlUwDexlB7LhA/edit?usp=sharing
 
